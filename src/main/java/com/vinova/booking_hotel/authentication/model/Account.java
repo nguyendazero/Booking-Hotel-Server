@@ -36,6 +36,9 @@ public class Account extends BaseEntity {
     @Column(name = "block_reason", columnDefinition = "TEXT")
     private String blockReason = null;
 
+    @Column(name = "avatar")
+    private String avatar;
+
     @Column(name = "role", nullable = false)
     private String role;
 
