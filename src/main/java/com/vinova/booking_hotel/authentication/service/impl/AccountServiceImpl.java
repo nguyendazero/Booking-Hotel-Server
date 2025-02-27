@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -52,14 +49,14 @@ public class AccountServiceImpl implements AccountService {
                 .orElseGet(() -> accountRepository.findByEmail(request.getUsernameOrEmail())
                         .orElseThrow(ErrorSignInException::new));
 
-        // Kiểm tra xem tài khoản có bị block không
-        if (!account.isEnabled()) {
-            throw new AccountIsBlockException();
-        }
-
         // Kiểm tra mật khẩu
         if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
             throw new ErrorSignInException();
+        }
+
+        // Kiểm tra xem tài khoản có bị block không
+        if (!account.isEnabled()) {
+            throw new AccountIsBlockException(account.getBlockReason());
         }
 
         // Xác thực tài khoản
@@ -90,7 +87,9 @@ public class AccountServiceImpl implements AccountService {
             account.setRefreshExpiresAt(LocalDateTime.now().plusDays(30)); // 30 ngày
         }
 
-        accountRepository.save(account); // Cập nhật tài khoản
+        // Cập nhật tài khoản
+        account.setLatestLogin(LocalDateTime.now());
+        accountRepository.save(account);
 
         // Tạo response với đầy đủ các trường cần thiết
         SignInResponse response = new SignInResponse(
@@ -106,39 +105,54 @@ public class AccountServiceImpl implements AccountService {
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
-    @Override
-    public APICustomize<String> signUp(SignUpRequest request) {
-        // Kiểm tra xem email đã tồn tại chưa
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new ResourceAlreadyExistsException("Account", "email", request.getEmail());
-        }
-
-        // Kiểm tra xem username đã tồn tại chưa
-        if (accountRepository.existsByUsername(request.getUsername())) {
-            throw new ResourceAlreadyExistsException("Account", "username", request.getUsername());
-        }
-
-        // Kiểm tra xem password và rePassword có khớp nhau không
-        if (!request.getPassword().equals(request.getRePassword())) {
-            throw new NotMatchPasswordException();
-        }
-
-        // Tạo mã xác thực
+    private void sendVerificationEmail(Account account) {
         String verificationCode = String.format("%06d", new Random().nextInt(999999));
         LocalDateTime sentTime = LocalDateTime.now();
 
         // Lưu thông tin tạm thời
-        verificationMap.put(request.getEmail(), new VerificationInfo(verificationCode, sentTime, request.getUsername(), request.getFullName()));
+        verificationMap.put(account.getEmail(), new VerificationInfo(verificationCode, sentTime, account.getUsername(), account.getFullName()));
 
         // Gửi email xác thực
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(request.getEmail());
+            message.setTo(account.getEmail());
             message.setSubject("Verify account");
             message.setText("Your verification code is: " + verificationCode + "\nThe verification code is valid for 60 seconds.");
             javaMailSender.send(message);
         } catch (MailException e) {
             throw new RuntimeException("Email verification failed. Please try again!", e);
+        }
+    }
+
+    @Override
+    public APICustomize<String> signUp(SignUpRequest request) {
+
+        // Kiểm tra xem password và rePassword có khớp nhau không
+        if (!request.getPassword().equals(request.getRePassword())) {
+            throw new NotMatchPasswordException();
+        }
+        
+        // Kiểm tra xem username đã tồn tại chưa
+        Optional<Account> existingAccountByUsername = accountRepository.findByUsername(request.getUsername());
+        if (existingAccountByUsername.isPresent() && existingAccountByUsername.get().isEnabled()) {
+            throw new ResourceAlreadyExistsException("Account", "username", request.getUsername());
+        }
+        
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<Account> existingAccountByEmail = accountRepository.findByEmail(request.getEmail());
+
+        // Nếu tài khoản đã tồn tại
+        if (existingAccountByEmail.isPresent()) {
+            Account existingAccount = existingAccountByEmail.get();
+
+            // Nếu tài khoản chưa được kích hoạt, gửi lại mã xác thực
+            if (!existingAccount.isEnabled()) {
+                sendVerificationEmail(existingAccount);
+                return new APICustomize<>(ApiError.OK.getCode(), "Account exists but not activated. Verification code sent again.", "Please verify to activate your account.");
+            } else {
+                // Nếu tài khoản đã được kích hoạt, ném ra lỗi
+                throw new ResourceAlreadyExistsException("Account", "email", request.getEmail());
+            }
         }
 
         // Tạo tài khoản mới
@@ -151,27 +165,17 @@ public class AccountServiceImpl implements AccountService {
 
         newAccount.setFullName(request.getFullName());
         newAccount.setEmail(request.getEmail());
-        newAccount.setEnabled(false);
+        newAccount.setEnabled(false); // Đặt enable là false
+        newAccount.setBlockReason("unverified account");
         newAccount.setRole("ROLE_USER");
         newAccount.setCreatedAt(LocalDateTime.now());
         newAccount.setUpdatedAt(LocalDateTime.now());
 
         // Lưu tài khoản
-        Account savedAccount = accountRepository.save(newAccount);
-        accountRepository.save(savedAccount);
+        accountRepository.save(newAccount);
 
-        // Tạo đối tượng UserResponse
-        AccountResponse accountResponse = new AccountResponse(
-                savedAccount.getId(),
-                savedAccount.getFullName(),
-                savedAccount.getUsername(),
-                savedAccount.getEmail(),
-                savedAccount.getAvatar(),
-                savedAccount.getRole(),
-                savedAccount.isEnabled(),
-                savedAccount.getCreatedAt(),
-                savedAccount.getUpdatedAt()
-        );
+        // Gửi email xác thực cho tài khoản mới
+        sendVerificationEmail(newAccount);
 
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Verification code sent. Please verify to activate account.");
     }
@@ -191,6 +195,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Kích hoạt tài khoản
         existingAccount.setEnabled(true);
+        existingAccount.setBlockReason(null);
         existingAccount.setUpdatedAt(LocalDateTime.now());
 
         // Lưu tài khoản

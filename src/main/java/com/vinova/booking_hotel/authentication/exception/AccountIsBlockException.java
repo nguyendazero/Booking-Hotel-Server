@@ -8,10 +8,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class AccountIsBlockException extends RuntimeException {
 
-    public AccountIsBlockException() {
-        super();
+    public AccountIsBlockException(String blockReason) {
+        super("Account is blocked, because: " + blockReason);
     }
-
 }
 
 

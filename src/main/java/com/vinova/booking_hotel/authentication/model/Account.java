@@ -47,5 +47,8 @@ public class Account extends BaseEntity {
 
     @Column(name = "refresh_expires_at")
     private LocalDateTime refreshExpiresAt;
+
+    @Column(name = "latest_login")
+    private LocalDateTime latestLogin;
     
 }

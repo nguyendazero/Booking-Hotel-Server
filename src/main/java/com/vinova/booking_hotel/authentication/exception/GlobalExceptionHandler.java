@@ -78,8 +78,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccountIsBlockException.class)
-    public ResponseEntity<ErrorResponse> handleAccountIsBlockException(HttpServletRequest request) {
-
+    public ResponseEntity<ErrorResponse> handleAccountIsBlockException(HttpServletRequest request, AccountIsBlockException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
@@ -90,8 +89,7 @@ public class GlobalExceptionHandler {
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId("ACCOUNTISBLOCKED");
-        String errorMessage = "Account is blocked";
-        errorDetail.setErrorMessage(errorMessage);
+        errorDetail.setErrorMessage(ex.getMessage());
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);
