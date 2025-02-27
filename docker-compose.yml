@@ -1,0 +1,22 @@
+networks:
+  app-network:
+    driver: bridge
+    
+volumes:
+  postgres-data-booking-hotel:
+    driver: local
+    
+services:
+  postgres:
+    image: "postgres:latest"
+    container_name: postgres-booking-hotel
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    volumes:
+      - postgres-data-booking-hotel:/var/lib/postgresql
+    networks:
+      - app-network
