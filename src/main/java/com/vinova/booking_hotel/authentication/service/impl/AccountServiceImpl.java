@@ -51,11 +51,11 @@ public class AccountServiceImpl implements AccountService {
     
     @Override
     public APICustomize<SignInResponse> signIn(SignInRequest request) {
-        String usernameOrEmail = request.getUsernameOrEmail();
+        String loginIdentifier = request.getUsernameOrEmail(); // Lấy giá trị từ request
 
         // Tìm kiếm tài khoản bằng username hoặc email
-        Account account = accountRepository.findByUsername(usernameOrEmail)
-                .orElseGet(() -> accountRepository.findByEmail(usernameOrEmail)
+        Account account = accountRepository.findByUsername(loginIdentifier)
+                .orElseGet(() -> accountRepository.findByEmail(loginIdentifier)
                         .orElseThrow(ErrorSignInException::new));
 
         // Kiểm tra xem tài khoản có bị block không
@@ -64,32 +64,36 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Lấy số lần đăng nhập không thành công
-        int attempts = failedAttempts.getOrDefault(usernameOrEmail, 0);
+        int attempts = failedAttempts.getOrDefault(loginIdentifier, 0);
 
         // Kiểm tra mật khẩu
         boolean passwordMatch = passwordEncoder.matches(request.getPassword(), account.getPassword());
 
         // Nếu mật khẩu không khớp, tăng số lần không thành công
         if (!passwordMatch) {
-            failedAttempts.merge(usernameOrEmail, 1, Integer::sum); // Tăng số lần không thành công lên 1
+            failedAttempts.merge(loginIdentifier, 1, Integer::sum); // Tăng số lần không thành công lên 1
+
+            // Lấy số lần không thành công sau khi cập nhật
+            attempts = failedAttempts.get(loginIdentifier);
 
             // Kiểm tra nếu đã vượt quá số lần cho phép
-            attempts++; // Cập nhật số lần không thành công
             if (attempts >= MAX_FAILED_ATTEMPTS) {
                 account.setEnabled(false);
                 account.setBlockReason("Too many failed login attempts, please register again to verify your account.");
                 accountRepository.save(account); // Cập nhật tài khoản
-                failedAttempts.put(usernameOrEmail, attempts);
+
+                // Đặt lại số lần không thành công về 0
+                failedAttempts.remove(loginIdentifier);
             }
 
             // Cập nhật lại số lần không thành công
-            failedAttempts.put(usernameOrEmail, attempts);
+            failedAttempts.put(loginIdentifier, attempts);
 
             throw new ErrorSignInException();
         }
 
         // Nếu đăng nhập thành công, xóa thông tin trong bộ nhớ
-        failedAttempts.remove(usernameOrEmail);
+        failedAttempts.remove(loginIdentifier);
 
         // Xác thực tài khoản
         Authentication authentication = authenticationManager.authenticate(
