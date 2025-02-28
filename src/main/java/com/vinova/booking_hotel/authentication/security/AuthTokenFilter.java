@@ -1,5 +1,8 @@
 package com.vinova.booking_hotel.authentication.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.security.Key;
 
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
@@ -33,7 +37,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         authTokenLogger.debug("AuthTokenFilter called for URI: {}", request.getRequestURI());
         try {
             String jwt = parseJwt(request);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+            if (jwt != null && jwtUtils.validateJwtToken(jwt) && isAccessToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -59,5 +63,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String jwt = jwtUtils.getJwtFromHeader(request);
         authTokenLogger.debug("AuthTokenFilter.java: {}", jwt);
         return jwt;
+    }
+
+    private boolean isAccessToken(String token) {
+        try {
+            // Phân tích JWT để lấy claims
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(jwtUtils.key())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.get("roles") != null;
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }

@@ -111,7 +111,7 @@ public class JwtUtils {
             account.setRefreshToken(newRefreshToken);
             accountRepository.save(account);
 
-            return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newRefreshToken);
+            return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccessToken);
         } catch (Exception e) {
             throw new RuntimeException("Invalid refresh token exception");
         }
@@ -126,7 +126,7 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    private Key key() {
+    Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
