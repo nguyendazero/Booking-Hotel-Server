@@ -5,8 +5,11 @@ import com.vinova.booking_hotel.authentication.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -138,6 +141,47 @@ public class GlobalExceptionHandler {
         errorResponse.setErrors(errors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+        ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
+            ErrorDetail errorDetail = new ErrorDetail();
+            errorDetail.setErrorCode("400");
+            errorDetail.setErrorMessageId("VALIDATION_ERROR");
+            errorDetail.setErrorMessage(fieldError.getDefaultMessage());
+            errors.add(errorDetail);
+        });
+
+        errorResponse.setErrors(errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+
+        errorResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorCode("INTERNAL_SERVER_ERROR");
+        errorDetail.setErrorMessageId("UNKNOWN_ERROR");
+        errorDetail.setErrorMessage(ex.getMessage());
+
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
     
 }

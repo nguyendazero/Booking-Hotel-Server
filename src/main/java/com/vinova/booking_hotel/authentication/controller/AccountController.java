@@ -1,20 +1,17 @@
 package com.vinova.booking_hotel.authentication.controller;
 
-import com.vinova.booking_hotel.authentication.dto.request.SignInRequest;
-import com.vinova.booking_hotel.authentication.dto.request.SignUpRequest;
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
-import com.vinova.booking_hotel.authentication.dto.response.AccountResponse;
-import com.vinova.booking_hotel.authentication.dto.response.SignInResponse;
-import com.vinova.booking_hotel.authentication.security.AccessTokenResponse;
+import com.vinova.booking_hotel.authentication.dto.request.*;
+import com.vinova.booking_hotel.authentication.dto.response.*;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.AccountService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+import lombok.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/account")
 @RequiredArgsConstructor
@@ -24,7 +21,7 @@ public class AccountController {
     private final JwtUtils jwtUtils;
 
     @PostMapping("/public/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody SignUpRequest accountRequest) {
+    public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest accountRequest) {
         APICustomize<String> response = accountService.signUp(accountRequest);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
