@@ -23,6 +23,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -39,25 +40,56 @@ public class AccountServiceImpl implements AccountService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
 
+    //Email
     private final JavaMailSender javaMailSender;
     private final Map<String, VerificationInfo> verificationMap = new HashMap<>();
+
+    //Login
+    private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    
     
     @Override
     public APICustomize<SignInResponse> signIn(SignInRequest request) {
-        // Tìm kiếm tài khoản bằng username hoặc email
-        Account account = accountRepository.findByUsername(request.getUsernameOrEmail())
-                .orElseGet(() -> accountRepository.findByEmail(request.getUsernameOrEmail())
-                        .orElseThrow(ErrorSignInException::new));
+        String usernameOrEmail = request.getUsernameOrEmail();
 
-        // Kiểm tra mật khẩu
-        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
-            throw new ErrorSignInException();
-        }
+        // Tìm kiếm tài khoản bằng username hoặc email
+        Account account = accountRepository.findByUsername(usernameOrEmail)
+                .orElseGet(() -> accountRepository.findByEmail(usernameOrEmail)
+                        .orElseThrow(ErrorSignInException::new));
 
         // Kiểm tra xem tài khoản có bị block không
         if (!account.isEnabled()) {
             throw new AccountIsBlockException(account.getBlockReason());
         }
+
+        // Lấy số lần đăng nhập không thành công
+        int attempts = failedAttempts.getOrDefault(usernameOrEmail, 0);
+
+        // Kiểm tra mật khẩu
+        boolean passwordMatch = passwordEncoder.matches(request.getPassword(), account.getPassword());
+
+        // Nếu mật khẩu không khớp, tăng số lần không thành công
+        if (!passwordMatch) {
+            failedAttempts.merge(usernameOrEmail, 1, Integer::sum); // Tăng số lần không thành công lên 1
+
+            // Kiểm tra nếu đã vượt quá số lần cho phép
+            attempts++; // Cập nhật số lần không thành công
+            if (attempts >= MAX_FAILED_ATTEMPTS) {
+                account.setEnabled(false);
+                account.setBlockReason("Too many failed login attempts, please register again to verify your account.");
+                accountRepository.save(account); // Cập nhật tài khoản
+                failedAttempts.put(usernameOrEmail, attempts);
+            }
+
+            // Cập nhật lại số lần không thành công
+            failedAttempts.put(usernameOrEmail, attempts);
+
+            throw new ErrorSignInException();
+        }
+
+        // Nếu đăng nhập thành công, xóa thông tin trong bộ nhớ
+        failedAttempts.remove(usernameOrEmail);
 
         // Xác thực tài khoản
         Authentication authentication = authenticationManager.authenticate(
