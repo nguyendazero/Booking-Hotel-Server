@@ -13,5 +13,7 @@ public interface AccountService {
     public APICustomize<String> signUp(SignUpRequest request);
 
     public APICustomize<AccountResponse> verifyEmail(String email, String code);
+
+    public void blockInactiveAccounts();
     
 }

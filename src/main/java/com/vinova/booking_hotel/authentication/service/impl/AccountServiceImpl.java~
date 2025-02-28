@@ -253,7 +253,6 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Scheduled(cron = "0 0 0 * * ?") // Chạy mỗi ngày vào lúc 0:00
-//    @Scheduled(cron = "*/30 * * * * ?") // Chạy mỗi 30 giây
     public void blockInactiveAccounts() {
         LocalDateTime thresholdDate = LocalDateTime.now().minusDays(30);
         List<Account> inactiveAccounts = accountRepository.findByLatestLoginBefore(thresholdDate);
