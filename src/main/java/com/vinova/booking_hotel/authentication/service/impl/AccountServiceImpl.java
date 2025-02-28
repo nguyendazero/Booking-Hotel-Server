@@ -1,11 +1,7 @@
 package com.vinova.booking_hotel.authentication.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.request.SignInRequest;
-import com.vinova.booking_hotel.authentication.dto.request.SignUpRequest;
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
-import com.vinova.booking_hotel.authentication.dto.response.AccountResponse;
-import com.vinova.booking_hotel.authentication.dto.response.SignInResponse;
-import com.vinova.booking_hotel.authentication.dto.response.VerificationInfo;
+import com.vinova.booking_hotel.authentication.dto.request.*;
+import com.vinova.booking_hotel.authentication.dto.response.*;
 import com.vinova.booking_hotel.authentication.enums.ApiError;
 import com.vinova.booking_hotel.authentication.exception.*;
 import com.vinova.booking_hotel.authentication.model.Account;
@@ -25,8 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,7 +46,7 @@ public class AccountServiceImpl implements AccountService {
     
     @Override
     public APICustomize<SignInResponse> signIn(SignInRequest request) {
-        String loginIdentifier = request.getUsernameOrEmail(); // Lấy giá trị từ request
+        String loginIdentifier = request.getUsernameOrEmail();
 
         // Tìm kiếm tài khoản bằng username hoặc email
         Account account = accountRepository.findByUsername(loginIdentifier)
