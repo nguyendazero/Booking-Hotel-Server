@@ -52,7 +52,7 @@ public class AccountController {
     }
 
     @PostMapping("/public/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
         APICustomize<String> response = accountService.resetPassword(request);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }

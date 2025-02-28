@@ -155,6 +155,8 @@ public class AccountServiceImpl implements AccountService {
             throw new RuntimeException("Email verification failed. Please try again!", e);
         }
     }
+    
+    
 
     @Override
     public APICustomize<String> signUp(SignUpRequest request) {
@@ -249,6 +251,59 @@ public class AccountServiceImpl implements AccountService {
         // Xóa thông tin xác thực sau khi xác thực thành công
         verificationMap.remove(email);
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), accountResponse);
+    }
+
+    @Override
+    public APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername) {
+        
+        String email;
+        if (emailOrUsername.contains("@gmail.com")) {
+            email = emailOrUsername;
+        } else {
+            Optional<Account> accountOptional = accountRepository.findByUsername(emailOrUsername);
+            if (accountOptional.isPresent()) {
+                email = accountOptional.get().getEmail();
+            } else {
+                throw new ResourceNotFoundException("Account", "username", emailOrUsername);
+            }
+        }
+
+        // Gửi email xác thực
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+
+        sendVerificationEmail(account);
+        return new APICustomize<>(ApiError.OK.getCode(), "Verification code sent to your email.", "Please verify to reset your password.");
+    }
+
+    @Override
+    public APICustomize<String> resetPassword(ResetPasswordRequest request) {
+        
+        // Xác thực mã
+        VerificationInfo verificationInfo = verificationMap.get(request.getEmail());
+        if (verificationInfo == null ||
+                !verificationInfo.getVerificationCode().equals(request.getCode()) ||
+                Duration.between(verificationInfo.getSentTime(), LocalDateTime.now()).getSeconds() > 60) {
+            throw new InValidVerifyEmailException();
+        }
+
+        // Kiểm tra password và rePassword
+        if (!request.getNewPassword().equals(request.getRePassword())) {
+            throw new NotMatchPasswordException();
+        }
+
+        // Cập nhật mật khẩu
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", request.getEmail()));
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        account.setPassword(encodedPassword);
+        accountRepository.save(account);
+
+        // Xóa thông tin xác thực
+        verificationMap.remove(request.getEmail());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Password has been reset successfully.");
     }
 
     @Override
