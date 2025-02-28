@@ -18,23 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/v1/account/public/*"
-    };
-
-    private static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/account/admin/*"
-    };
-
-    private static final String[] HOTEL_OWNER_ENDPOINTS = {
-            "/api/v1/account/owner/*"
-    };
-
-    private static final String[] USER_ENDPOINTS = {
-            "/api/v1/account/user/*"
-    };
-
+    
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
 
@@ -56,13 +40,29 @@ public class SecurityConfig {
         return builder.getAuthenticationManager();
     }
 
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/v1/account/public/**"
+    };
+
+    private static final String[] ADMIN_ENDPOINTS = {
+            "/api/v1/account/admin/**"
+    };
+
+    private static final String[] HOTEL_OWNER_ENDPOINTS = {
+            "/api/v1/account/owner/**"
+    };
+
+    private static final String[] USER_ENDPOINTS = {
+            "/api/v1/account/user/**"
+    };
+
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .exceptionHandling(exceptionHandling -> {
                     exceptionHandling
-                            .authenticationEntryPoint(unauthorizedHandler) // Xử lý 401 Unauthorized
-                            .accessDeniedHandler(accessDeniedHandler); // Xử lý 403 Forbidden
+                            .authenticationEntryPoint(unauthorizedHandler)
+                            .accessDeniedHandler(accessDeniedHandler);
                 })
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()

@@ -44,8 +44,8 @@ public class AccountController {
     @PostMapping("/public/refresh-token")
     public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
-        APICustomize<String> response = jwtUtils.refreshAccessToken(refreshToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        APICustomize<String> newAccessToken = jwtUtils.refreshAccessToken(refreshToken);
+        return ResponseEntity.ok(newAccessToken);
     }
 
     @GetMapping("/admin/hello")
