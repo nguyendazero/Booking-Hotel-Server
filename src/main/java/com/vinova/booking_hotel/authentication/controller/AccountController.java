@@ -63,6 +63,13 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @PutMapping("/user/update-info/{id}")
+    public ResponseEntity<?> updateAccountInfo(@PathVariable Long id,
+                                               @ModelAttribute @Valid UpdateInfoRequest request) {
+        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @GetMapping("/admin/hello")
     public ResponseEntity<?> admin(){
         return ResponseEntity.ok("Hello Admin");

@@ -31,6 +31,10 @@ import java.util.stream.Collectors;
 public class AccountServiceImpl implements AccountService {
     
     private final AccountRepository accountRepository;
+    
+    //Cloudinary
+    private final CloudinaryService cloudinaryService;
+    
     //Security
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
@@ -316,6 +320,41 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account has been unblocked successfully.");
+    }
+
+    @Override
+    public APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+
+        // Cập nhật fullName
+        if (request.getFullName() != null) {
+            account.setFullName(request.getFullName());
+        }
+
+        // Cập nhật avatar
+        if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+            String avatarUrl = cloudinaryService.uploadImage(request.getAvatar());
+            account.setAvatar(avatarUrl);
+        }
+
+        // Lưu tài khoản
+        accountRepository.save(account);
+
+        // Tạo đối tượng AccountResponseDto để trả về
+        AccountResponseDto responseDto = new AccountResponseDto(
+                account.getId(),
+                account.getFullName(),
+                account.getUsername(),
+                account.getEmail(),
+                account.getAvatar(),
+                account.getRole(),
+                account.isEnabled(),
+                account.getCreatedAt(),
+                account.getUpdatedAt()
+        );
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
     }
 
     @Override
