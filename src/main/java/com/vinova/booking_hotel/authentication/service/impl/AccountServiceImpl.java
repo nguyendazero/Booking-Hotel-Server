@@ -43,8 +43,8 @@ public class AccountServiceImpl implements AccountService {
     //Login
     private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    
-    
+
+
     @Override
     public APICustomize<SignInResponse> signIn(SignInRequest request) {
         String loginIdentifier = request.getUsernameOrEmail();
@@ -67,26 +67,29 @@ public class AccountServiceImpl implements AccountService {
 
         // Nếu mật khẩu không khớp, tăng số lần không thành công
         if (!passwordMatch) {
-            failedAttempts.merge(loginIdentifier, 1, Integer::sum); // Tăng số lần không thành công lên 1
+            // Sử dụng ID tài khoản làm khóa cho các lần thất bại
+            String accountIdKey = String.valueOf(account.getId());
+            failedAttempts.merge(accountIdKey, 1, Integer::sum);
 
             // Lấy số lần không thành công sau khi cập nhật
-            attempts = failedAttempts.get(loginIdentifier);
+            attempts = failedAttempts.get(accountIdKey);
 
             // Kiểm tra nếu đã vượt quá số lần cho phép
             if (attempts >= MAX_FAILED_ATTEMPTS) {
                 account.setEnabled(false);
                 account.setBlockReason("Too many failed login attempts, please register again to verify your account.");
-                accountRepository.save(account); // Cập nhật tài khoản
+                accountRepository.save(account);
 
                 // Đặt lại số lần không thành công về 0
-                failedAttempts.remove(loginIdentifier);
+                failedAttempts.remove(accountIdKey);
             }
 
             throw new ErrorSignInException();
         }
 
         // Nếu đăng nhập thành công, xóa thông tin trong bộ nhớ
-        failedAttempts.remove(loginIdentifier);
+        String accountIdKey = String.valueOf(account.getId());
+        failedAttempts.remove(accountIdKey);
 
         // Xác thực tài khoản
         Authentication authentication = authenticationManager.authenticate(
