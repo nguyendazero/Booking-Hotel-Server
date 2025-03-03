@@ -59,8 +59,8 @@ public class AccountServiceImpl implements AccountService {
             throw new AccountIsBlockException(account.getBlockReason());
         }
 
-        // Lấy số lần đăng nhập không thành công
-        int attempts = failedAttempts.getOrDefault(loginIdentifier, 0);
+        // Khai báo số lần đăng nhập không thành công
+        int attempts;
 
         // Kiểm tra mật khẩu
         boolean passwordMatch = passwordEncoder.matches(request.getPassword(), account.getPassword());
@@ -81,9 +81,6 @@ public class AccountServiceImpl implements AccountService {
                 // Đặt lại số lần không thành công về 0
                 failedAttempts.remove(loginIdentifier);
             }
-
-            // Cập nhật lại số lần không thành công
-            failedAttempts.put(loginIdentifier, attempts);
 
             throw new ErrorSignInException();
         }
