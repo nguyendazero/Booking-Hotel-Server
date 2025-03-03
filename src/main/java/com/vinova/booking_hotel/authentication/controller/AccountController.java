@@ -57,6 +57,12 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @GetMapping("/admin/unblock-account/{id}")
+    public ResponseEntity<?> unBlockAccount(@PathVariable Long id) {
+        APICustomize<String> response = accountService.UnBlockAccount(id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @GetMapping("/admin/hello")
     public ResponseEntity<?> admin(){
         return ResponseEntity.ok("Hello Admin");

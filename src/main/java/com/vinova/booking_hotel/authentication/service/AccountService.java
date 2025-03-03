@@ -18,6 +18,8 @@ public interface AccountService {
     public APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername);
 
     public APICustomize<String> resetPassword(ResetPasswordRequest request);
+    
+    public APICustomize<String> UnBlockAccount(Long id);
 
     public void blockInactiveAccounts();
     

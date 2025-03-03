@@ -307,6 +307,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public APICustomize<String> UnBlockAccount(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
+
+        account.setEnabled(true);
+        account.setBlockReason(null);
+        accountRepository.save(account);
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account has been unblocked successfully.");
+    }
+
+    @Override
     @Scheduled(cron = "0 0 0 * * ?") // Chạy mỗi ngày vào lúc 0:00
 //    @Scheduled(cron = "*/30 * * * * ?") // Chạy mỗi 30 giây
     public void blockInactiveAccounts() {
