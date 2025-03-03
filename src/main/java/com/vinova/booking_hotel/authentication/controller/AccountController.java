@@ -67,9 +67,14 @@ public class AccountController {
     public ResponseEntity<?> updateAccountInfo(@RequestHeader("Authorization") String token,
                                                @ModelAttribute @Valid UpdateInfoRequest request) {
         String jwtToken = token.substring(7);
-        Long accountId = jwtUtils.getUserIdFromJwtToken(jwtToken);
+        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, jwtToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
 
-        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, accountId);
+    @GetMapping("/user/me")
+    public ResponseEntity<?> getAccountByToken(@RequestHeader("Authorization") String token) {
+        String jwtToken = token.substring(7);
+        APICustomize<AccountResponseDto> response = accountService.getAccountByToken(jwtToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

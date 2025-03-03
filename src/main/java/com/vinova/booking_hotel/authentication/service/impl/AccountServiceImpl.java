@@ -323,7 +323,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, Long accountId) {
+    public APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, String token) {
+        // Lấy accountId bằng token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
 
@@ -340,6 +343,31 @@ public class AccountServiceImpl implements AccountService {
 
         // Lưu tài khoản
         accountRepository.save(account);
+
+        // Tạo đối tượng AccountResponseDto để trả về
+        AccountResponseDto responseDto = new AccountResponseDto(
+                account.getId(),
+                account.getFullName(),
+                account.getUsername(),
+                account.getEmail(),
+                account.getAvatar(),
+                account.getRole(),
+                account.isEnabled(),
+                account.getCreatedAt(),
+                account.getUpdatedAt()
+        );
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
+    }
+
+    @Override
+    public APICustomize<AccountResponseDto> getAccountByToken(String token) {
+        // Lấy userId bằng token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+
+        // Tìm tài khoản bằng userId
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
 
         // Tạo đối tượng AccountResponseDto để trả về
         AccountResponseDto responseDto = new AccountResponseDto(

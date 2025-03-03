@@ -10,19 +10,21 @@ import com.vinova.booking_hotel.authentication.dto.response.SignInResponseDto;
 
 public interface AccountService {
 
-    public APICustomize<SignInResponseDto> signIn(SignInRequest request);
+    APICustomize<SignInResponseDto> signIn(SignInRequest request);
 
-    public APICustomize<String> signUp(SignUpRequest request);
+    APICustomize<String> signUp(SignUpRequest request);
 
-    public APICustomize<AccountResponseDto> verifyEmail(String email, String code);
+    APICustomize<AccountResponseDto> verifyEmail(String email, String code);
 
-    public APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername);
+    APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername);
 
-    public APICustomize<String> resetPassword(ResetPasswordRequest request);
+    APICustomize<String> resetPassword(ResetPasswordRequest request);
     
-    public APICustomize<String> UnBlockAccount(Long id);
+    APICustomize<String> UnBlockAccount(Long id);
 
-    APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, Long accountId);
+    APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, String token);
+
+    APICustomize<AccountResponseDto> getAccountByToken(String token);
 
     public void blockInactiveAccounts();
     
