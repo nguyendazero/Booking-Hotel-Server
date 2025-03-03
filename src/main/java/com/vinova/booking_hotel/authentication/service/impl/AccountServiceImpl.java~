@@ -46,7 +46,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public APICustomize<SignInResponseDto> signIn(SignInRequest request) {
+    public APICustomize<SignInResponse> signIn(SignInRequest request) {
         String loginIdentifier = request.getUsernameOrEmail();
 
         // Tìm kiếm tài khoản bằng username hoặc email
@@ -124,7 +124,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
 
         // Tạo response với đầy đủ các trường cần thiết
-        SignInResponseDto response = new SignInResponseDto(
+        SignInResponse response = new SignInResponse(
                 account.getId(),
                 account.getUsername(),
                 account.getFullName(),
@@ -215,7 +215,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public APICustomize<AccountResponseDto> verifyEmail(String email, String code) {
+    public APICustomize<AccountResponse> verifyEmail(String email, String code) {
         VerificationInfo verificationInfo = verificationMap.get(email);
         if (verificationInfo == null ||
                 !verificationInfo.getVerificationCode().equals(code) ||
@@ -236,7 +236,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(existingAccount);
 
         // Tạo đối tượng UserResponse
-        AccountResponseDto accountResponse = new AccountResponseDto(
+        AccountResponse accountResponse = new AccountResponse(
                 existingAccount.getId(),
                 existingAccount.getFullName(),
                 existingAccount.getUsername(),

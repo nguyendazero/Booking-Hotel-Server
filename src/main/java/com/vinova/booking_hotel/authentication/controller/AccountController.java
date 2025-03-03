@@ -28,13 +28,13 @@ public class AccountController {
 
     @PostMapping("/public/verify-email")
     public ResponseEntity<?> verifyEmail(@RequestParam String email, @RequestParam String code) {
-        APICustomize<AccountResponse> response = accountService.verifyEmail(email, code);
+        APICustomize<AccountResponseDto> response = accountService.verifyEmail(email, code);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/sign-in")
     public ResponseEntity<?> signIn(@RequestBody SignInRequest request) {
-        APICustomize<SignInResponse> response = accountService.signIn(request);
+        APICustomize<SignInResponseDto> response = accountService.signIn(request);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

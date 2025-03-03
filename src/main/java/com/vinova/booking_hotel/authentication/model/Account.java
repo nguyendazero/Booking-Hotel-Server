@@ -1,9 +1,15 @@
 package com.vinova.booking_hotel.authentication.model;
 
+import com.vinova.booking_hotel.property.model.Booking;
+import com.vinova.booking_hotel.property.model.Config;
+import com.vinova.booking_hotel.property.model.Hotel;
+import com.vinova.booking_hotel.property.model.Rating;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -50,5 +56,17 @@ public class Account extends BaseEntity {
 
     @Column(name = "latest_login")
     private LocalDateTime latestLogin;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Hotel> hotels = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Config> configs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Booking> bookings = new ArrayList<>();
     
 }

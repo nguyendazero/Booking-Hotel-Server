@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountResponse {
+public class AccountResponseDto {
     private Long id;
     private String fullName;
     private String username;

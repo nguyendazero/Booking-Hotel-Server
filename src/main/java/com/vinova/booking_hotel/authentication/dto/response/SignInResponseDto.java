@@ -6,7 +6,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignInResponse {
+public class SignInResponseDto {
     private Long id;
     private String username;
     private String fullName;
