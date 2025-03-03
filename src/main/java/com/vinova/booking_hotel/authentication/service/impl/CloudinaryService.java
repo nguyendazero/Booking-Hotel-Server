@@ -18,7 +18,7 @@ public class CloudinaryService {
     public String uploadImage(MultipartFile file) {
         try {
             Map<String, Object> data = this.cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
-            return (String) data.get("secure_url"); // Trả về URL của ảnh đã upload
+            return (String) data.get("secure_url");
         } catch (IOException io) {
             throw new RuntimeException("Image upload failed", io);
         }
