@@ -63,10 +63,13 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
-    @PutMapping("/user/update-info/{id}")
-    public ResponseEntity<?> updateAccountInfo(@PathVariable Long id,
+    @PutMapping("/user/update-info")
+    public ResponseEntity<?> updateAccountInfo(@RequestHeader("Authorization") String token,
                                                @ModelAttribute @Valid UpdateInfoRequest request) {
-        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, id);
+        String jwtToken = token.substring(7);
+        Long accountId = jwtUtils.getUserIdFromJwtToken(jwtToken);
+
+        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, accountId);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

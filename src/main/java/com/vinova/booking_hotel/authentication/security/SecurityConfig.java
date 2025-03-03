@@ -67,8 +67,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
-                        .requestMatchers(HOTEL_OWNER_ENDPOINTS).hasRole("OWNER")
-                        .requestMatchers(USER_ENDPOINTS).hasRole("USER")
+                        .requestMatchers(HOTEL_OWNER_ENDPOINTS).hasAnyRole("OWNER", "ADMIN")
+                        .requestMatchers(USER_ENDPOINTS).hasAnyRole("USER", "OWNER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
