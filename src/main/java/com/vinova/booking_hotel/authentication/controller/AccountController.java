@@ -78,6 +78,12 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @DeleteMapping("/admin/delete/{id}")
+    public ResponseEntity<?> deleteAccountById(@PathVariable Long id) {
+        APICustomize<String> response = accountService.deleteAccountById(id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @GetMapping("/admin/hello")
     public ResponseEntity<?> admin(){
         return ResponseEntity.ok("Hello Admin");

@@ -26,6 +26,8 @@ public interface AccountService {
 
     APICustomize<AccountResponseDto> getAccountByToken(String token);
 
+    APICustomize<String> deleteAccountById(Long accountId);
+
     public void blockInactiveAccounts();
     
 }

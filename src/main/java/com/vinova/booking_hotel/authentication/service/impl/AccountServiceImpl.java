@@ -386,6 +386,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public APICustomize<String> deleteAccountById(Long accountId) {
+        // Tìm tài khoản bằng accountId
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+
+        // Xóa tài khoản
+        accountRepository.delete(account);
+        
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Account has been deleted successfully.");
+    }
+
+    @Override
     @Scheduled(cron = "0 0 0 * * ?") // Chạy mỗi ngày vào lúc 0:00
 //    @Scheduled(cron = "*/30 * * * * ?") // Chạy mỗi 30 giây
     public void blockInactiveAccounts() {
