@@ -8,7 +8,12 @@ import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.AccountService;
+import com.vinova.booking_hotel.authentication.specification.AccountSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.hibernate.query.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -48,6 +53,49 @@ public class AccountServiceImpl implements AccountService {
     private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private static final int MAX_FAILED_ATTEMPTS = 5;
 
+
+    @Override
+    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize) {
+        // Kiểm tra hợp lệ cho pageIndex và pageSize
+        if (pageIndex < 0 || pageSize <= 0) {
+            throw new InvalidPageOrSizeException();
+        }
+
+        // Tạo Specification với các tiêu chí tìm kiếm
+        Specification<Account> spec = Specification
+                .where(AccountSpecification.hasFullName(fullName))
+                .and(AccountSpecification.hasRole(role))
+                .and(AccountSpecification.isEnabled(enabled));
+
+        // Sử dụng Pageable từ Spring Data
+        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+
+        // Tìm danh sách sản phẩm với Specification và phân trang
+        List<Account> accounts = accountRepository.findAll(spec, pageable).getContent();
+
+        // Chuyển đổi danh sách tài khoản sang danh sách AccountResponseDto
+        List<AccountResponseDto> accountResponses = new ArrayList<>();
+
+        for (Account account : accounts) {
+            // Chuyển đổi Account thành AccountResponseDto
+            AccountResponseDto accountResponse = new AccountResponseDto(
+                    account.getId(),
+                    account.getFullName(),
+                    account.getUsername(),
+                    account.getEmail(),
+                    account.getAvatar(),
+                    account.getRole(),
+                    account.isEnabled(),
+                    account.getCreatedAt(),
+                    account.getUpdatedAt()
+            );
+
+            accountResponses.add(accountResponse);
+        }
+
+        // Trả về kết quả
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), accountResponses);
+    }
 
     @Override
     public APICustomize<SignInResponseDto> signIn(SignInRequest request) {

@@ -8,7 +8,12 @@ import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.dto.response.SignInResponseDto;
 
+import java.awt.print.Pageable;
+import java.util.List;
+
 public interface AccountService {
+
+    APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize);
 
     APICustomize<SignInResponseDto> signIn(SignInRequest request);
 

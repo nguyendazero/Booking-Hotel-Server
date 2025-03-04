@@ -162,11 +162,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidPageOrSizeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPageOrSizeException(HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+        String errorKey = "INVALIDPAGEORSIZE";
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorCode("400");
+        errorDetail.setErrorMessageId(errorKey);
+        errorDetail.setErrorMessage("Invalid page or size");
+        
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-
         errorResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
