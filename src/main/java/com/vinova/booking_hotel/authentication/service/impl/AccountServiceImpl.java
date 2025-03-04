@@ -102,9 +102,7 @@ public class AccountServiceImpl implements AccountService {
                     account.getEmail(),
                     account.getAvatar(),
                     roles,
-                    account.isEnabled(),
-                    account.getCreateDt(),
-                    account.getUpdateDt()
+                    account.isEnabled()
             );
 
             accountResponses.add(accountResponse);
@@ -310,9 +308,7 @@ public class AccountServiceImpl implements AccountService {
                 existingAccount.getEmail(),
                 existingAccount.getAvatar(),
                 roles,
-                existingAccount.isEnabled(),
-                existingAccount.getCreateDt(),
-                existingAccount.getUpdateDt()
+                existingAccount.isEnabled()
         );
 
         // Xóa thông tin xác thực sau khi xác thực thành công
@@ -420,9 +416,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getEmail(),
                 account.getAvatar(),
                 roles,
-                account.isEnabled(),
-                account.getCreateDt(),
-                account.getUpdateDt()
+                account.isEnabled()
         );
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
@@ -450,9 +444,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getEmail(),
                 account.getAvatar(),
                 roles,
-                account.isEnabled(),
-                account.getCreateDt(),
-                account.getUpdateDt()
+                account.isEnabled()
         );
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);

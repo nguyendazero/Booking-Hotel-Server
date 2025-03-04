@@ -7,7 +7,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignInResponseDto {
-    private String jwtToken;
+    private String accessToken;
     private String refreshToken;
 }
 
