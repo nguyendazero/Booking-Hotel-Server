@@ -12,8 +12,8 @@ import com.vinova.booking_hotel.authentication.specification.AccountSpecificatio
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.hibernate.query.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -55,7 +55,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize) {
+    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize, String sortBy, String sortOrder) {
         // Kiểm tra hợp lệ cho pageIndex và pageSize
         if (pageIndex < 0 || pageSize <= 0) {
             throw new InvalidPageOrSizeException();
@@ -67,10 +67,17 @@ public class AccountServiceImpl implements AccountService {
                 .and(AccountSpecification.hasRole(role))
                 .and(AccountSpecification.isEnabled(enabled));
 
-        // Sử dụng Pageable từ Spring Data
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
+        // Xác định sort direction
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        if (sortBy != null) {
+            Sort.Direction direction = sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            sort = Sort.by(direction, sortBy);
+        }
 
-        // Tìm danh sách sản phẩm với Specification và phân trang
+        // Sử dụng Pageable từ Spring Data
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+
+        // Tìm danh sách tài khoản với Specification và phân trang
         List<Account> accounts = accountRepository.findAll(spec, pageable).getContent();
 
         // Chuyển đổi danh sách tài khoản sang danh sách AccountResponseDto

@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface AccountService {
 
-    APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize);
+    APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize, String sortBy, String sortOrder);
 
     APICustomize<SignInResponseDto> signIn(SignInRequest request);
 

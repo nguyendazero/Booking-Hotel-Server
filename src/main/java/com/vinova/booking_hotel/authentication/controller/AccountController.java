@@ -28,8 +28,10 @@ public class AccountController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Boolean enabled,
             @RequestParam(defaultValue = "0") int pageIndex,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        APICustomize<List<AccountResponseDto>> response = accountService.accounts(fullName, role, enabled, pageIndex, pageSize);
+            @RequestParam(defaultValue = "5") int pageSize,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortOrder) {
+        APICustomize<List<AccountResponseDto>> response = accountService.accounts(fullName, role, enabled, pageIndex, pageSize, sortBy, sortOrder);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
