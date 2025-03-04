@@ -6,7 +6,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ErrorDetail {
-    private String errorCode;
     private String errorMessageId;
     private String errorMessage;
 }

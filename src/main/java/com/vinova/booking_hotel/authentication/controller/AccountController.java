@@ -36,50 +36,50 @@ public class AccountController {
     }
 
     @PostMapping("/public/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest accountRequest) {
+    public ResponseEntity<APICustomize<String>> signUp(@RequestBody @Valid SignUpRequest accountRequest) {
         APICustomize<String> response = accountService.signUp(accountRequest);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam String email, @RequestParam String code) {
+    public ResponseEntity<APICustomize<AccountResponseDto>> verifyEmail(@RequestParam String email, @RequestParam String code) {
         APICustomize<AccountResponseDto> response = accountService.verifyEmail(email, code);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/sign-in")
-    public ResponseEntity<?> signIn(@RequestBody SignInRequest request) {
+    public ResponseEntity<APICustomize<SignInResponseDto>> signIn(@RequestBody SignInRequest request) {
         APICustomize<SignInResponseDto> response = accountService.signIn(request);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/refresh-token")
-    public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<APICustomize<String>> refreshAccessToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
         APICustomize<String> response = jwtUtils.refreshAccessToken(refreshToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestParam String emailOrUsername) {
+    public ResponseEntity<APICustomize<String>> forgotPassword(@RequestParam String emailOrUsername) {
         APICustomize<String> response = accountService.sendVerificationForPasswordReset(emailOrUsername);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PostMapping("/public/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<APICustomize<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
         APICustomize<String> response = accountService.resetPassword(request);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @GetMapping("/admin/unblock-account/{id}")
-    public ResponseEntity<?> unBlockAccount(@PathVariable Long id) {
+    public ResponseEntity<APICustomize<String>> unBlockAccount(@PathVariable Long id) {
         APICustomize<String> response = accountService.UnBlockAccount(id);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PutMapping("/user/update-info")
-    public ResponseEntity<?> updateAccountInfo(@RequestHeader("Authorization") String token,
+    public ResponseEntity<APICustomize<AccountResponseDto>> updateAccountInfo(@RequestHeader("Authorization") String token,
                                                @ModelAttribute @Valid UpdateInfoRequest request) {
         String jwtToken = token.substring(7);
         APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, jwtToken);
@@ -87,14 +87,14 @@ public class AccountController {
     }
 
     @GetMapping("/user/me")
-    public ResponseEntity<?> getAccountByToken(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<APICustomize<AccountResponseDto>> getAccountByToken(@RequestHeader("Authorization") String token) {
         String jwtToken = token.substring(7);
         APICustomize<AccountResponseDto> response = accountService.getAccountByToken(jwtToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @DeleteMapping("/admin/delete/{id}")
-    public ResponseEntity<?> deleteAccountById(@PathVariable Long id) {
+    public ResponseEntity<APICustomize<String>> deleteAccountById(@PathVariable Long id) {
         APICustomize<String> response = accountService.deleteAccountById(id);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }

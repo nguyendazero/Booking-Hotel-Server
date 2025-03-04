@@ -8,7 +8,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ErrorResponse {
-    private int statusCode;
     private String timestamp;
     private String path;
     private List<ErrorDetail> errors;

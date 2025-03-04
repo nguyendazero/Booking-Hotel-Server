@@ -5,7 +5,11 @@ import com.vinova.booking_hotel.authentication.dto.response.*;
 import com.vinova.booking_hotel.authentication.enums.ApiError;
 import com.vinova.booking_hotel.authentication.exception.*;
 import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.model.AccountRole;
+import com.vinova.booking_hotel.authentication.model.Role;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
+import com.vinova.booking_hotel.authentication.repository.AccountRoleRepository;
+import com.vinova.booking_hotel.authentication.repository.RoleRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.AccountService;
 import com.vinova.booking_hotel.authentication.specification.AccountSpecification;
@@ -21,7 +25,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,8 @@ import java.util.stream.Collectors;
 public class AccountServiceImpl implements AccountService {
     
     private final AccountRepository accountRepository;
+    private final RoleRepository roleRepository;
+    private final AccountRoleRepository accountRoleRepository;
     
     //Cloudinary
     private final CloudinaryService cloudinaryService;
@@ -64,10 +69,10 @@ public class AccountServiceImpl implements AccountService {
         // Tạo Specification với các tiêu chí tìm kiếm
         Specification<Account> spec = Specification
                 .where(AccountSpecification.hasFullName(fullName))
-                .and(AccountSpecification.hasRole(role))
-                .and(AccountSpecification.isEnabled(enabled));
+                .and(AccountSpecification.isEnabled(enabled))
+                .and(AccountSpecification.hasRole(role));
 
-        // Xác định sort direction
+        // Xác định hướng sắp xếp
         Sort sort = Sort.by(Sort.Direction.ASC, "id");
         if (sortBy != null) {
             Sort.Direction direction = sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -84,6 +89,11 @@ public class AccountServiceImpl implements AccountService {
         List<AccountResponseDto> accountResponses = new ArrayList<>();
 
         for (Account account : accounts) {
+            // Truy xuất vai trò liên quan đến tài khoản
+            List<String> roles = account.getAccountRoles().stream()
+                    .map(accountRole -> accountRole.getRole().getName())
+                    .collect(Collectors.toList());
+
             // Chuyển đổi Account thành AccountResponseDto
             AccountResponseDto accountResponse = new AccountResponseDto(
                     account.getId(),
@@ -91,10 +101,10 @@ public class AccountServiceImpl implements AccountService {
                     account.getUsername(),
                     account.getEmail(),
                     account.getAvatar(),
-                    account.getRole(),
+                    roles,
                     account.isEnabled(),
-                    account.getCreatedAt(),
-                    account.getUpdatedAt()
+                    account.getCreateDt(),
+                    account.getUpdateDt()
             );
 
             accountResponses.add(accountResponse);
@@ -157,11 +167,6 @@ public class AccountServiceImpl implements AccountService {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // Lấy danh sách roles từ authorities
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
         // Tạo JWT token mới
         String jwtToken = jwtUtils.generateTokenFromUserDetails(userDetails);
 
@@ -184,11 +189,6 @@ public class AccountServiceImpl implements AccountService {
 
         // Tạo response với đầy đủ các trường cần thiết
         SignInResponseDto response = new SignInResponseDto(
-                account.getId(),
-                account.getUsername(),
-                account.getFullName(),
-                account.getEmail(),
-                roles,
                 jwtToken,
                 account.getRefreshToken()
         );
@@ -224,17 +224,15 @@ public class AccountServiceImpl implements AccountService {
         if (!request.getPassword().equals(request.getRePassword())) {
             throw new NotMatchPasswordException();
         }
-        
+
         // Kiểm tra xem username đã tồn tại chưa
         Optional<Account> existingAccountByUsername = accountRepository.findByUsername(request.getUsername());
         if (existingAccountByUsername.isPresent() && existingAccountByUsername.get().isEnabled()) {
-            throw new ResourceAlreadyExistsException("Account", "username", request.getUsername());
+            throw new ResourceAlreadyExistsException("Account", "username");
         }
-        
+
         // Kiểm tra xem email đã tồn tại chưa
         Optional<Account> existingAccountByEmail = accountRepository.findByEmail(request.getEmail());
-
-        // Nếu tài khoản đã tồn tại
         if (existingAccountByEmail.isPresent()) {
             Account existingAccount = existingAccountByEmail.get();
 
@@ -244,7 +242,7 @@ public class AccountServiceImpl implements AccountService {
                 return new APICustomize<>(ApiError.OK.getCode(), "Account exists but not activated. Verification code sent again.", "Please verify to activate your account.");
             } else {
                 // Nếu tài khoản đã được kích hoạt, ném ra lỗi
-                throw new ResourceAlreadyExistsException("Account", "email", request.getEmail());
+                throw new ResourceAlreadyExistsException("Account", "email");
             }
         }
 
@@ -255,17 +253,22 @@ public class AccountServiceImpl implements AccountService {
         // Mã hóa mật khẩu trước khi lưu
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         newAccount.setPassword(encodedPassword);
-
         newAccount.setFullName(request.getFullName());
         newAccount.setEmail(request.getEmail());
         newAccount.setEnabled(false); // Đặt enable là false
         newAccount.setBlockReason("unverified account");
-        newAccount.setRole("ROLE_USER");
-        newAccount.setCreatedAt(LocalDateTime.now());
-        newAccount.setUpdatedAt(LocalDateTime.now());
+        newAccount.setCreateDt(ZonedDateTime.now());
+        newAccount.setUpdateDt(ZonedDateTime.now());
 
         // Lưu tài khoản
         accountRepository.save(newAccount);
+
+        // Tạo và lưu mối quan hệ AccountRole
+        Role userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new ResourceNotFoundException("Role", "name"));
+        AccountRole accountRole = new AccountRole();
+        accountRole.setAccount(newAccount);
+        accountRole.setRole(userRole);
+        accountRoleRepository.save(accountRole);
 
         // Gửi email xác thực cho tài khoản mới
         sendVerificationEmail(newAccount);
@@ -284,27 +287,32 @@ public class AccountServiceImpl implements AccountService {
 
         // Cập nhật tài khoản đã tạo trước đó
         Account existingAccount = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
         // Kích hoạt tài khoản
         existingAccount.setEnabled(true);
         existingAccount.setBlockReason(null);
-        existingAccount.setUpdatedAt(LocalDateTime.now());
+        existingAccount.setUpdateDt(ZonedDateTime.now());
 
         // Lưu tài khoản
         accountRepository.save(existingAccount);
 
-        // Tạo đối tượng UserResponse
+        // Tạo danh sách vai trò từ AccountRole
+        List<String> roles = existingAccount.getAccountRoles().stream()
+                .map(accountRole -> accountRole.getRole().getName())
+                .collect(Collectors.toList());
+
+        // Tạo đối tượng AccountResponseDto
         AccountResponseDto accountResponse = new AccountResponseDto(
                 existingAccount.getId(),
                 existingAccount.getFullName(),
                 existingAccount.getUsername(),
                 existingAccount.getEmail(),
                 existingAccount.getAvatar(),
-                existingAccount.getRole(),
+                roles,
                 existingAccount.isEnabled(),
-                existingAccount.getCreatedAt(),
-                existingAccount.getUpdatedAt()
+                existingAccount.getCreateDt(),
+                existingAccount.getUpdateDt()
         );
 
         // Xóa thông tin xác thực sau khi xác thực thành công
@@ -323,13 +331,13 @@ public class AccountServiceImpl implements AccountService {
             if (accountOptional.isPresent()) {
                 email = accountOptional.get().getEmail();
             } else {
-                throw new ResourceNotFoundException("Account", "username", emailOrUsername);
+                throw new ResourceNotFoundException("Account", "username");
             }
         }
 
         // Gửi email xác thực
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", email));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
         sendVerificationEmail(account);
         return new APICustomize<>(ApiError.OK.getCode(), "Verification code sent to your email.", "Please verify to reset your password.");
@@ -353,7 +361,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Cập nhật mật khẩu
         Account account = accountRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email", request.getEmail()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         account.setPassword(encodedPassword);
@@ -368,7 +376,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public APICustomize<String> UnBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", id.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
 
         account.setEnabled(true);
         account.setBlockReason(null);
@@ -383,7 +391,7 @@ public class AccountServiceImpl implements AccountService {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
 
         // Cập nhật fullName
         if (request.getFullName() != null) {
@@ -397,7 +405,12 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Lưu tài khoản
-        accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+
+        // Tạo danh sách vai trò từ AccountRole
+        List<String> roles = savedAccount.getAccountRoles().stream()
+                .map(accountRole -> accountRole.getRole().getName())
+                .toList();
 
         // Tạo đối tượng AccountResponseDto để trả về
         AccountResponseDto responseDto = new AccountResponseDto(
@@ -406,10 +419,10 @@ public class AccountServiceImpl implements AccountService {
                 account.getUsername(),
                 account.getEmail(),
                 account.getAvatar(),
-                account.getRole(),
+                roles,
                 account.isEnabled(),
-                account.getCreatedAt(),
-                account.getUpdatedAt()
+                account.getCreateDt(),
+                account.getUpdateDt()
         );
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
@@ -422,8 +435,13 @@ public class AccountServiceImpl implements AccountService {
 
         // Tìm tài khoản bằng userId
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
 
+        // Tạo danh sách vai trò từ AccountRole
+        List<String> roles = account.getAccountRoles().stream()
+                .map(accountRole -> accountRole.getRole().getName())
+                .toList();
+        
         // Tạo đối tượng AccountResponseDto để trả về
         AccountResponseDto responseDto = new AccountResponseDto(
                 account.getId(),
@@ -431,10 +449,10 @@ public class AccountServiceImpl implements AccountService {
                 account.getUsername(),
                 account.getEmail(),
                 account.getAvatar(),
-                account.getRole(),
+                roles,
                 account.isEnabled(),
-                account.getCreatedAt(),
-                account.getUpdatedAt()
+                account.getCreateDt(),
+                account.getUpdateDt()
         );
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
@@ -444,12 +462,12 @@ public class AccountServiceImpl implements AccountService {
     public APICustomize<String> deleteAccountById(Long accountId) {
         // Tìm tài khoản bằng accountId
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id", accountId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
 
         // Xóa tài khoản
         accountRepository.delete(account);
         
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Account has been deleted successfully.");
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "");
     }
 
     @Override

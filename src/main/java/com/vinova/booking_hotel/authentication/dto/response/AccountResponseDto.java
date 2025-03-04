@@ -1,7 +1,8 @@
 package com.vinova.booking_hotel.authentication.dto.response;
 
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -12,8 +13,8 @@ public class AccountResponseDto {
     private String username;
     private String email;
     private String avatar;
-    private String role;
+    private List<String> roles;
     private boolean enabled;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private ZonedDateTime createdDt;
+    private ZonedDateTime updatedDt;
 }

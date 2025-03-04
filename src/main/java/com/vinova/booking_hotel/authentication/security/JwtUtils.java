@@ -51,7 +51,7 @@ public class JwtUtils {
         String username = userDetails.getUsername();
 
         Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "username", username));
+                .orElseThrow(() -> new ResourceNotFoundException("Account", "username"));
         
         Long id = account.getId();
 
@@ -67,7 +67,7 @@ public class JwtUtils {
                 .claim("roles", roleNames)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
 
         return token;
@@ -94,7 +94,7 @@ public class JwtUtils {
 
             // Lấy thông tin tài khoản từ cơ sở dữ liệu
             Account account = accountRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Account", "username", username));
+                    .orElseThrow(() -> new ResourceNotFoundException("Account", "username"));
 
             // Kiểm tra xem refresh token có hợp lệ?
             if (!refreshToken.equals(account.getRefreshToken()) ||

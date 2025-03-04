@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class ResourceAlreadyExistsException extends RuntimeException {
     private final String resourceName;
     private final String fieldName;
-    private final String fieldValue;
 
-    public ResourceAlreadyExistsException(String resourceName, String fieldName, String fieldValue) {
+    public ResourceAlreadyExistsException(String resourceName, String fieldName) {
         super();
         this.resourceName = resourceName;
         this.fieldName = fieldName;
-        this.fieldValue = fieldValue;
     }
 }
 

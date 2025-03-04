@@ -1,0 +1,8 @@
+package com.vinova.booking_hotel.authentication.service.impl;
+
+import com.vinova.booking_hotel.authentication.service.AccountRoleService;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AccountRoleServiceImpl implements AccountRoleService {
+}

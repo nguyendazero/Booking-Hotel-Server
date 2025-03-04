@@ -13,10 +13,14 @@ public class AccountSpecification {
     }
 
     public static Specification<Account> hasRole(String role) {
-        return (root, query, criteriaBuilder) ->
-                role == null ?
-                        criteriaBuilder.conjunction() :
-                        criteriaBuilder.equal(root.get("role"), role);
+        return (root, query, criteriaBuilder) -> {
+            if (role == null) {
+                return criteriaBuilder.conjunction();
+            }
+            // Join với AccountRole để truy vấn
+            var accountRoles = root.join("accountRoles");
+            return criteriaBuilder.equal(accountRoles.get("role").get("name"), role);
+        };
     }
 
     public static Specification<Account> isEnabled(Boolean enabled) {

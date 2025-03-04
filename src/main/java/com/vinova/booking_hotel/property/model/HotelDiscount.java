@@ -1,17 +1,22 @@
 package com.vinova.booking_hotel.property.model;
 
+import com.vinova.booking_hotel.authentication.model.AccountRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "hotels_discounts")
-public class HotelDiscount extends BaseEntity {
+public class HotelDiscount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,4 +36,12 @@ public class HotelDiscount extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "discount_id", nullable = false)
     private Discount discount;
+
+    @Column(name = "create_dt")
+    @CreationTimestamp
+    private ZonedDateTime createDt;
+
+    @Column(name = "update_dt")
+    @UpdateTimestamp
+    private ZonedDateTime updateDt;
 }

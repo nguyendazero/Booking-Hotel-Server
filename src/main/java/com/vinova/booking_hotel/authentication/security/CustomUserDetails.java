@@ -1,7 +1,7 @@
 package com.vinova.booking_hotel.authentication.security;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
@@ -19,7 +19,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Set.of(new SimpleGrantedAuthority(account.getRole()));
+        return account.getAccountRoles().stream()
+                .map(accountRole -> new SimpleGrantedAuthority(accountRole.getRole().getName()))
+                .collect(Collectors.toSet());
     }
 
     @Override

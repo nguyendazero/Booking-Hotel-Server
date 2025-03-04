@@ -1,11 +1,12 @@
-package com.vinova.booking_hotel.property.model;
+package com.vinova.booking_hotel.authentication.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,19 +15,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "discounts")
-public class Discount {
+@Table(name = "roles")
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "rate", nullable = false)
-    private BigDecimal rate;
-
-    @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<HotelDiscount> hotelDiscounts = new ArrayList<>();
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "create_dt")
     @CreationTimestamp
@@ -35,4 +33,8 @@ public class Discount {
     @Column(name = "update_dt")
     @UpdateTimestamp
     private ZonedDateTime updateDt;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccountRole> accountRoles = new ArrayList<>();
+    
 }

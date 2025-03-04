@@ -20,16 +20,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(HttpServletRequest request, ResourceNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.NOT_FOUND.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
 
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("404");
         errorDetail.setErrorMessageId("NOTFOUND4041E");
-        errorDetail.setErrorMessage("Resource not found: " + ex.getResourceName() + " with " + ex.getFieldName() + " = " + ex.getFieldValue());
+        errorDetail.setErrorMessage("Resource not found: " + ex.getResourceName() + " with " + ex.getFieldName());
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);
@@ -40,14 +38,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ErrorSignInException.class)
     public ResponseEntity<ErrorResponse> handleErrorSignInException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
         
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId("ERRORSIGNIN");
         String errorMessage = "Invalid username or password";
         errorDetail.setErrorMessage(errorMessage);
@@ -61,14 +57,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotMatchPasswordException.class)
     public ResponseEntity<ErrorResponse> handleNotMatchPasswordException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
 
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId("NOTMATCHPASSWORD");
         String errorMessage = "Password not match";
         errorDetail.setErrorMessage(errorMessage);
@@ -82,14 +76,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccountIsBlockException.class)
     public ResponseEntity<ErrorResponse> handleAccountIsBlockException(HttpServletRequest request, AccountIsBlockException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
 
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId("ACCOUNTISBLOCKED");
         errorDetail.setErrorMessage(ex.getMessage());
 
@@ -103,16 +95,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(HttpServletRequest request, ResourceAlreadyExistsException ex) {
 
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.CONFLICT.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
         
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("409");
         errorDetail.setErrorMessageId("RESOURCEALREADYEXISTS");
-        errorDetail.setErrorMessage("Resource already exists: " + ex.getResourceName() + " with " + ex.getFieldName() + " = " + ex.getFieldValue());
+        errorDetail.setErrorMessage("Resource already exists: " + ex.getResourceName() + " with " + ex.getFieldName());
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);
@@ -124,14 +114,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInValidVerifyEmailException(HttpServletRequest request) {
 
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
 
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId("INVALIDVERIFYEMAIL");
         String errorMessage = "Invalid verify email";
         errorDetail.setErrorMessage(errorMessage);
@@ -145,14 +133,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
         ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
             ErrorDetail errorDetail = new ErrorDetail();
-            errorDetail.setErrorCode("400");
             errorDetail.setErrorMessageId("VALIDATION_ERROR");
             errorDetail.setErrorMessage(fieldError.getDefaultMessage());
             errors.add(errorDetail);
@@ -165,14 +151,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidPageOrSizeException.class)
     public ResponseEntity<ErrorResponse> handleInvalidPageOrSizeException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
         String errorKey = "INVALIDPAGEORSIZE";
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("400");
         errorDetail.setErrorMessageId(errorKey);
         errorDetail.setErrorMessage("Invalid page or size");
         
@@ -185,13 +169,11 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
 
         List<ErrorDetail> errors = new ArrayList<>();
         ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorCode("INTERNAL_SERVER_ERROR");
         errorDetail.setErrorMessageId("UNKNOWN_ERROR");
         errorDetail.setErrorMessage(ex.getMessage());
 

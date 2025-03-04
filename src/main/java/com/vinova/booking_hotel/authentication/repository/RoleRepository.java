@@ -1,0 +1,12 @@
+package com.vinova.booking_hotel.authentication.repository;
+
+import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.model.Role;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface RoleRepository extends JpaRepository<Role, Long> {
+    Optional<Role> findByName(String name);
+}
+    

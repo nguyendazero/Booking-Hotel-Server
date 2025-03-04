@@ -3,18 +3,20 @@ package com.vinova.booking_hotel.property.model;
 import com.vinova.booking_hotel.authentication.model.Account;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "hotels")
-public class Hotel extends BaseEntity {
+public class Hotel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,5 +66,13 @@ public class Hotel extends BaseEntity {
 
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> bookings = new ArrayList<>();
+
+    @Column(name = "create_dt")
+    @CreationTimestamp
+    private ZonedDateTime createDt;
+
+    @Column(name = "update_dt")
+    @UpdateTimestamp
+    private ZonedDateTime updateDt;
     
 }

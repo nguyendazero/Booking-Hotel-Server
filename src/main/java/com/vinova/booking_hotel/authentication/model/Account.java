@@ -6,18 +6,20 @@ import com.vinova.booking_hotel.property.model.Hotel;
 import com.vinova.booking_hotel.property.model.Rating;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "accounts")
-public class Account extends BaseEntity {
+public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,11 +44,14 @@ public class Account extends BaseEntity {
     @Column(name = "block_reason", columnDefinition = "TEXT")
     private String blockReason = null;
 
+    @Column(name = "phone")
+    private String phone;
+
     @Column(name = "avatar")
     private String avatar;
 
-    @Column(name = "role", nullable = false)
-    private String role;
+    @Column(name = "latest_login")
+    private LocalDateTime latestLogin;
 
     @Column(name = "refresh_token", columnDefinition = "TEXT")
     private String refreshToken;
@@ -54,8 +59,13 @@ public class Account extends BaseEntity {
     @Column(name = "refresh_expires_at")
     private LocalDateTime refreshExpiresAt;
 
-    @Column(name = "latest_login")
-    private LocalDateTime latestLogin;
+    @Column(name = "create_dt")
+    @CreationTimestamp
+    private ZonedDateTime createDt;
+
+    @Column(name = "update_dt")
+    @UpdateTimestamp
+    private ZonedDateTime updateDt;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Hotel> hotels = new ArrayList<>();
@@ -68,5 +78,8 @@ public class Account extends BaseEntity {
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> bookings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AccountRole> accountRoles = new ArrayList<>();
     
 }

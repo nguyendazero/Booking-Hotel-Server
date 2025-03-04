@@ -1,16 +1,22 @@
 package com.vinova.booking_hotel.property.model;
 
 import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.model.AccountRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-@EqualsAndHashCode(callSuper = true)
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "ratings")
-public class Rating extends BaseEntity{
+public class Rating{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,5 +36,13 @@ public class Rating extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
+
+    @Column(name = "create_dt")
+    @CreationTimestamp
+    private ZonedDateTime createDt;
+
+    @Column(name = "update_dt")
+    @UpdateTimestamp
+    private ZonedDateTime updateDt;
     
 }
