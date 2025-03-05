@@ -10,5 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class UpdateInfoRequest {
     private String fullName;
+    private String phone;
     private MultipartFile avatar;
 }

@@ -390,6 +390,11 @@ public class AccountServiceImpl implements AccountService {
             account.setFullName(request.getFullName());
         }
 
+        // Cập nhật phone
+        if (request.getPhone() != null) {
+            account.setPhone(request.getPhone());
+        }
+
         // Cập nhật avatar
         if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
             String avatarUrl = cloudinaryService.uploadImage(request.getAvatar());
