@@ -330,6 +330,10 @@ public class AccountServiceImpl implements AccountService {
         // Gửi email xác thực
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(ResourceNotFoundException::new);
+        
+        if (account.getBlockReason() != null) {
+            throw new AccountIsBlockException(account.getBlockReason());
+        }
 
         // Tạo mã xác thực cho việc reset password
         String verificationCode = String.format("%06d", new Random().nextInt(999999));
@@ -360,11 +364,6 @@ public class AccountServiceImpl implements AccountService {
         // Cập nhật mật khẩu
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(ResourceNotFoundException::new);
-        
-        // Unblock nếu tài khoản đã bị block
-        if (account.getBlockReason() != null) {
-            account.setBlockReason(null);
-        }
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         account.setPassword(encodedPassword);
