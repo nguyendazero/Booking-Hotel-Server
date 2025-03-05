@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.authentication.dto.request;
 
+import com.vinova.booking_hotel.authentication.validation.annotation.ValidFullName;
 import com.vinova.booking_hotel.authentication.validation.annotation.ValidPassword;
 import lombok.*;
 
@@ -8,11 +9,16 @@ import lombok.*;
 @AllArgsConstructor
 public class SignUpRequest {
     
+    @ValidFullName
     private String fullName;
+    
     private String username;
+    
     private String email;
+    
     @ValidPassword(message = "Invalid password. Must be at least 8 characters, number, including uppercase, lowercase, and special characters.")
     private String password;
+    
     @ValidPassword(message = "Invalid re-password. Must be at least 8 characters, number, including uppercase, lowercase, and special characters.")
     private String rePassword;
 }

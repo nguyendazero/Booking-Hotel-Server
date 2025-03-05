@@ -9,9 +9,12 @@ import lombok.*;
 public class ResetPasswordRequest {
     
     private String email;
+    
     private String code;
+    
     @ValidPassword(message = "Invalid password. Must be at least 8 characters, number, including uppercase, lowercase, and special characters.")
     private String newPassword;
+    
     @ValidPassword(message = "Invalid password. Must be at least 8 characters, number, including uppercase, lowercase, and special characters.")
     private String rePassword;
     
