@@ -213,7 +213,7 @@ public class AccountServiceImpl implements AccountService {
             // Nếu tài khoản chưa được kích hoạt, gửi lại mã xác thực
             if (existingAccount.getBlockReason() != null) {
                 String verificationCode = String.format("%06d", new Random().nextInt(999999));
-                verificationMap.put(existingAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), existingAccount.getUsername(), existingAccount.getFullName()));
+                verificationMap.put(existingAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), request.getUsername(), request.getFullName()));
                 emailService.sendAccountReactivationEmail(existingAccount.getEmail(), verificationCode);
                 return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account exists but not activated. Verification code sent again. Please verify to activate your account.");
             } else {
@@ -267,7 +267,8 @@ public class AccountServiceImpl implements AccountService {
 
         // Kích hoạt tài khoản
         existingAccount.setBlockReason(null);
-        existingAccount.setUpdateDt(ZonedDateTime.now());
+        existingAccount.setFullName(verificationInfo.getFullName());
+        existingAccount.setUsername(verificationInfo.getUsername());
 
         // Lưu tài khoản
         accountRepository.save(existingAccount);
