@@ -252,6 +252,38 @@ public class AccountServiceImpl implements AccountService {
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Verification code sent. Please verify to activate account.");
     }
 
+    public APICustomize<String> resendVerificationCode(String email) {
+        // Kiểm tra xem tài khoản có tồn tại không
+        Account existingAccount = accountRepository.findByEmail(email)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem tài khoản đã được kích hoạt chưa
+        if (existingAccount.getBlockReason() == null) {
+            throw new ResourceAlreadyExistsException("Account already activated.");
+        }
+
+        // Kiểm tra xem có thông tin xác thực nào không
+        VerificationInfo verificationInfo = verificationMap.get(email);
+        if (verificationInfo != null) {
+            // Kiểm tra thời gian gửi mã xác thực
+            long secondsSinceSent = Duration.between(verificationInfo.getSentTime(), LocalDateTime.now()).getSeconds();
+            if (secondsSinceSent < 60) {
+                throw new CodeVerifySentException();
+            }
+        }
+
+        // Tạo mã xác thực mới
+        String verificationCode = String.format("%06d", new Random().nextInt(999999));
+        assert verificationInfo != null;
+        VerificationInfo newVerificationInfo = new VerificationInfo(verificationCode, LocalDateTime.now(), verificationInfo.getUsername(), verificationInfo.getFullName());
+        verificationMap.put(existingAccount.getEmail(), newVerificationInfo);
+
+        // Gửi mã xác thực mới
+        emailService.sendAccountVerificationEmail(existingAccount.getEmail(), verificationCode);
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "New verification code sent. Please check your email.");
+    }
+
     @Override
     public APICustomize<AccountResponseDto> verifyEmail(String email, String code) {
         VerificationInfo verificationInfo = verificationMap.get(email);

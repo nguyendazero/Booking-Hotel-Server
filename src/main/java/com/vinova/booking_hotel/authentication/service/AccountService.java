@@ -15,6 +15,8 @@ public interface AccountService {
 
     APICustomize<String> signUp(SignUpRequest request);
 
+    APICustomize<String> resendVerificationCode(String email);
+
     APICustomize<AccountResponseDto> verifyEmail(String email, String code);
 
     APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername);

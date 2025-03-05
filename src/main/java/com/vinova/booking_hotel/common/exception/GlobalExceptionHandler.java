@@ -18,7 +18,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(HttpServletRequest request, ResourceNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
@@ -28,6 +28,24 @@ public class GlobalExceptionHandler {
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setErrorMessageId("NOTFOUND4041E");
         errorDetail.setErrorMessage("Resource not found");
+
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(CodeVerifySentException.class)
+    public ResponseEntity<ErrorResponse> handleCodeVerifySentException(HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorMessageId("CODEVERIFYSENT");
+        errorDetail.setErrorMessage("Code verify sent, please check your email");
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);

@@ -53,6 +53,12 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @PostMapping("/public/resend-verification-code")
+    public ResponseEntity<APICustomize<String>> resendVerificationCode(@RequestParam String email) {
+        APICustomize<String> response = accountService.resendVerificationCode(email);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @PostMapping("/public/refresh-token")
     public ResponseEntity<APICustomize<String>> refreshAccessToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
