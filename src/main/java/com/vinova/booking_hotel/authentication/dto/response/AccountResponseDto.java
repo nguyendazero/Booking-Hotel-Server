@@ -12,6 +12,6 @@ public class AccountResponseDto {
     private String username;
     private String email;
     private String avatar;
+    private String phone;
     private List<String> roles;
-    private boolean enabled;
 }

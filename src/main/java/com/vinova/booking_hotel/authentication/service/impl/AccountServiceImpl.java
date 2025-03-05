@@ -60,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean enabled, int pageIndex, int pageSize, String sortBy, String sortOrder) {
+    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder) {
         // Kiểm tra hợp lệ cho pageIndex và pageSize
         if (pageIndex < 0 || pageSize <= 0) {
             throw new InvalidPageOrSizeException();
@@ -69,7 +69,7 @@ public class AccountServiceImpl implements AccountService {
         // Tạo Specification với các tiêu chí tìm kiếm
         Specification<Account> spec = Specification
                 .where(AccountSpecification.hasFullName(fullName))
-                .and(AccountSpecification.isEnabled(enabled))
+                .and(AccountSpecification.isBlocked(isBlocked))
                 .and(AccountSpecification.hasRole(role));
 
         // Xác định hướng sắp xếp
@@ -101,8 +101,8 @@ public class AccountServiceImpl implements AccountService {
                     account.getUsername(),
                     account.getEmail(),
                     account.getAvatar(),
-                    roles,
-                    account.isEnabled()
+                    account.getPhone(),
+                    roles
             );
 
             accountResponses.add(accountResponse);
@@ -122,7 +122,7 @@ public class AccountServiceImpl implements AccountService {
                         .orElseThrow(ErrorSignInException::new));
 
         // Kiểm tra xem tài khoản có bị block không
-        if (!account.isEnabled()) {
+        if (account.getBlockReason() != null) {
             throw new AccountIsBlockException(account.getBlockReason());
         }
 
@@ -143,7 +143,6 @@ public class AccountServiceImpl implements AccountService {
 
             // Kiểm tra nếu đã vượt quá số lần cho phép
             if (attempts >= MAX_FAILED_ATTEMPTS) {
-                account.setEnabled(false);
                 account.setBlockReason("Too many failed login attempts, please register again to verify your account.");
                 accountRepository.save(account);
 
@@ -225,7 +224,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Kiểm tra xem username đã tồn tại chưa
         Optional<Account> existingAccountByUsername = accountRepository.findByUsername(request.getUsername());
-        if (existingAccountByUsername.isPresent() && existingAccountByUsername.get().isEnabled()) {
+        if (existingAccountByUsername.isPresent() && existingAccountByUsername.get().getBlockReason() == null) {
             throw new ResourceAlreadyExistsException("Account", "username");
         }
 
@@ -235,9 +234,9 @@ public class AccountServiceImpl implements AccountService {
             Account existingAccount = existingAccountByEmail.get();
 
             // Nếu tài khoản chưa được kích hoạt, gửi lại mã xác thực
-            if (!existingAccount.isEnabled()) {
+            if (existingAccount.getBlockReason() != null) {
                 sendVerificationEmail(existingAccount);
-                return new APICustomize<>(ApiError.OK.getCode(), "Account exists but not activated. Verification code sent again.", "Please verify to activate your account.");
+                return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account exists but not activated. Verification code sent again. Please verify to activate your account.");
             } else {
                 // Nếu tài khoản đã được kích hoạt, ném ra lỗi
                 throw new ResourceAlreadyExistsException("Account", "email");
@@ -253,8 +252,7 @@ public class AccountServiceImpl implements AccountService {
         newAccount.setPassword(encodedPassword);
         newAccount.setFullName(request.getFullName());
         newAccount.setEmail(request.getEmail());
-        newAccount.setEnabled(false); // Đặt enable là false
-        newAccount.setBlockReason("unverified account");
+        newAccount.setBlockReason("unverified_account");
         newAccount.setCreateDt(ZonedDateTime.now());
         newAccount.setUpdateDt(ZonedDateTime.now());
 
@@ -288,7 +286,6 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
         // Kích hoạt tài khoản
-        existingAccount.setEnabled(true);
         existingAccount.setBlockReason(null);
         existingAccount.setUpdateDt(ZonedDateTime.now());
 
@@ -307,8 +304,8 @@ public class AccountServiceImpl implements AccountService {
                 existingAccount.getUsername(),
                 existingAccount.getEmail(),
                 existingAccount.getAvatar(),
-                roles,
-                existingAccount.isEnabled()
+                existingAccount.getPhone(),
+                roles
         );
 
         // Xóa thông tin xác thực sau khi xác thực thành công
@@ -373,8 +370,7 @@ public class AccountServiceImpl implements AccountService {
     public APICustomize<String> UnBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
-
-        account.setEnabled(true);
+        
         account.setBlockReason(null);
         accountRepository.save(account);
 
@@ -415,8 +411,8 @@ public class AccountServiceImpl implements AccountService {
                 account.getUsername(),
                 account.getEmail(),
                 account.getAvatar(),
-                roles,
-                account.isEnabled()
+                account.getPhone(),
+                roles
         );
 
         return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), responseDto);
@@ -443,8 +439,8 @@ public class AccountServiceImpl implements AccountService {
                 account.getUsername(),
                 account.getEmail(),
                 account.getAvatar(),
-                roles,
-                account.isEnabled()
+                account.getPhone(),
+                roles
         );
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
@@ -470,7 +466,6 @@ public class AccountServiceImpl implements AccountService {
         List<Account> inactiveAccounts = accountRepository.findByLatestLoginBefore(thresholdDate);
 
         for (Account account : inactiveAccounts) {
-            account.setEnabled(false);
             account.setBlockReason("Long time no login");
             accountRepository.save(account);
         }

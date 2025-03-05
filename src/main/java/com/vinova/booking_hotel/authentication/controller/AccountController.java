@@ -26,12 +26,12 @@ public class AccountController {
     public ResponseEntity<APICustomize<List<AccountResponseDto>>> searchAccounts(
             @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String role,
-            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(required = false) Boolean isBlocked,
             @RequestParam(defaultValue = "0") int pageIndex,
             @RequestParam(defaultValue = "5") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder) {
-        APICustomize<List<AccountResponseDto>> response = accountService.accounts(fullName, role, enabled, pageIndex, pageSize, sortBy, sortOrder);
+        APICustomize<List<AccountResponseDto>> response = accountService.accounts(fullName, role, isBlocked, pageIndex, pageSize, sortBy, sortOrder);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

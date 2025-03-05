@@ -38,11 +38,8 @@ public class Account {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "enabled", nullable = false)
-    private boolean enabled = true;
-
     @Column(name = "block_reason", columnDefinition = "TEXT")
-    private String blockReason = null;
+    private String blockReason;
 
     @Column(name = "phone")
     private String phone;

@@ -23,10 +23,14 @@ public class AccountSpecification {
         };
     }
 
-    public static Specification<Account> isEnabled(Boolean enabled) {
-        return (root, query, criteriaBuilder) ->
-                enabled == null ?
-                        criteriaBuilder.conjunction() :
-                        criteriaBuilder.equal(root.get("enabled"), enabled);
+    public static Specification<Account> isBlocked(Boolean isBlocked) {
+        return (root, query, criteriaBuilder) -> {
+            if (isBlocked == null) {
+                return criteriaBuilder.conjunction();
+            }
+            return isBlocked ?
+                    criteriaBuilder.isNotNull(root.get("blockReason")) :
+                    criteriaBuilder.isNull(root.get("blockReason"));
+        };
     }
 }
