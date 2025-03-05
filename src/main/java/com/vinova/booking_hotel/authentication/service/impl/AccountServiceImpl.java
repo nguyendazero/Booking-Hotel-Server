@@ -343,6 +343,11 @@ public class AccountServiceImpl implements AccountService {
         // Cập nhật mật khẩu
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(ResourceNotFoundException::new);
+        
+        // Unblock nếu tài khoản đã bị block
+        if (account.getBlockReason() != null) {
+            account.setBlockReason(null);
+        }
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         account.setPassword(encodedPassword);
