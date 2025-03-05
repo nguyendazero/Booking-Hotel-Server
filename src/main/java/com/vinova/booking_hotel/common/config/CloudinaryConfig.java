@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.authentication.config;
+package com.vinova.booking_hotel.common.config;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

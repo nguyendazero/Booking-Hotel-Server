@@ -1,7 +1,7 @@
 package com.vinova.booking_hotel.authentication.security;
 import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
-import com.vinova.booking_hotel.authentication.enums.ApiError;
-import com.vinova.booking_hotel.authentication.exception.ResourceNotFoundException;
+import com.vinova.booking_hotel.common.enums.ApiError;
+import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import io.jsonwebtoken.*;

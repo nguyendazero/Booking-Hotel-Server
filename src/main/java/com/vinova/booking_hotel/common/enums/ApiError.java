@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.authentication.enums;
+package com.vinova.booking_hotel.common.enums;
 
 public enum ApiError {
     // 1xx Informational

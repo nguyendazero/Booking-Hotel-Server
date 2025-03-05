@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.authentication.exception;
+package com.vinova.booking_hotel.common.exception;
 
 import com.vinova.booking_hotel.authentication.dto.response.ErrorDetail;
 import com.vinova.booking_hotel.authentication.dto.response.ErrorResponse;

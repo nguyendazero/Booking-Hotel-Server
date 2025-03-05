@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.authentication.exception;
+package com.vinova.booking_hotel.common.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
