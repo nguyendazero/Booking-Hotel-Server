@@ -42,8 +42,8 @@ public class AccountController {
     }
 
     @PostMapping("/public/verify-email")
-    public ResponseEntity<APICustomize<AccountResponseDto>> verifyEmail(@RequestParam String email, @RequestParam String code) {
-        APICustomize<AccountResponseDto> response = accountService.verifyEmail(email, code);
+    public ResponseEntity<APICustomize<String>> verifyEmail(@RequestParam String email, @RequestParam String code) {
+        APICustomize<String> response = accountService.verifyEmail(email, code);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

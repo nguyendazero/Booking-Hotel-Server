@@ -285,7 +285,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public APICustomize<AccountResponseDto> verifyEmail(String email, String code) {
+    public APICustomize<String> verifyEmail(String email, String code) {
         VerificationInfo verificationInfo = verificationMap.get(email);
         if (verificationInfo == null ||
                 !verificationInfo.getVerificationCode().equals(code) ||
@@ -305,25 +305,9 @@ public class AccountServiceImpl implements AccountService {
         // Lưu tài khoản
         accountRepository.save(existingAccount);
 
-        // Tạo danh sách vai trò từ AccountRole
-        List<String> roles = existingAccount.getAccountRoles().stream()
-                .map(accountRole -> accountRole.getRole().getName())
-                .collect(Collectors.toList());
-
-        // Tạo đối tượng AccountResponseDto
-        AccountResponseDto accountResponse = new AccountResponseDto(
-                existingAccount.getId(),
-                existingAccount.getFullName(),
-                existingAccount.getUsername(),
-                existingAccount.getEmail(),
-                existingAccount.getAvatar(),
-                existingAccount.getPhone(),
-                roles
-        );
-
         // Xóa thông tin xác thực sau khi xác thực thành công
         verificationMap.remove(email);
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), accountResponse);
+        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Account activated successfully.");
     }
 
     @Override
