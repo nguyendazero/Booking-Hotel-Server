@@ -8,9 +8,8 @@ volumes:
     
 services:
   postgres:
-    image: "postgres:latest"
+    image: "postgres:14.17"
     container_name: postgres-booking-hotel
-    restart: always
     ports:
       - "5432:5432"
     environment:
