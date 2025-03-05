@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
         
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setErrorMessageId("RESOURCEALREADYEXISTS");
-        errorDetail.setErrorMessage("Resource already exists: " + ex.getResourceName() + " with " + ex.getFieldName());
+        errorDetail.setErrorMessage("Resource already exists" + " with this " + ex.getFieldName());
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);

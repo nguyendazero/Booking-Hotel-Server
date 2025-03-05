@@ -202,7 +202,7 @@ public class AccountServiceImpl implements AccountService {
         // Kiểm tra xem username đã tồn tại chưa
         Optional<Account> existingAccountByUsername = accountRepository.findByUsername(request.getUsername());
         if (existingAccountByUsername.isPresent() && existingAccountByUsername.get().getBlockReason() == null) {
-            throw new ResourceAlreadyExistsException("Account", "username");
+            throw new ResourceAlreadyExistsException("username");
         }
 
         // Kiểm tra xem email đã tồn tại chưa
@@ -217,7 +217,7 @@ public class AccountServiceImpl implements AccountService {
                 emailService.sendAccountReactivationEmail(existingAccount.getEmail(), verificationCode);
                 return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account exists but not activated. Verification code sent again. Please verify to activate your account.");
             } else {
-                throw new ResourceAlreadyExistsException("Account", "email");
+                throw new ResourceAlreadyExistsException("email");
             }
         }
 
