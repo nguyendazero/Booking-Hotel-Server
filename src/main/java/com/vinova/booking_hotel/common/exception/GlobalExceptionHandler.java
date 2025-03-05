@@ -54,6 +54,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(OldPasswordNotMatch.class)
+    public ResponseEntity<ErrorResponse> handleOldPasswordNotMatch(HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorMessageId("OLDPASSWORDNOTMATCH");
+        String errorMessage = "Old password not match";
+        errorDetail.setErrorMessage(errorMessage);
+
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     @ExceptionHandler(NotMatchPasswordException.class)
     public ResponseEntity<ErrorResponse> handleNotMatchPasswordException(HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse();

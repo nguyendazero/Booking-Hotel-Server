@@ -355,6 +355,33 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public APICustomize<String> changePassword(ChangePasswordRequest request, String token) {
+        // Lấy accountId bằng token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+
+        // Tìm tài khoản bằng accountId
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiem tra password cũ
+        if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
+            throw new OldPasswordNotMatch();
+        }
+        
+        //Kiem tra newPassword va rePassword
+        if(!request.getNewPassword().equals(request.getRePassword())) {
+            throw new NotMatchPasswordException();
+        }
+        
+        // Cập nhật password
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        account.setPassword(encodedPassword);
+        accountRepository.save(account);
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Password has been changed successfully.");
+    }
+
+    @Override
     public APICustomize<String> UnBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new);

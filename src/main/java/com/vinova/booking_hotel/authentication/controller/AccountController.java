@@ -72,6 +72,14 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @PostMapping("/user/change-password")
+    public ResponseEntity<APICustomize<String>> changePassword(@RequestHeader("Authorization") String token,
+                                               @RequestBody @Valid ChangePasswordRequest request) {
+        String accessToken = token.substring(7);
+        APICustomize<String> response = accountService.changePassword(request, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @GetMapping("/admin/unblock-account/{id}")
     public ResponseEntity<APICustomize<String>> unBlockAccount(@PathVariable Long id) {
         APICustomize<String> response = accountService.UnBlockAccount(id);
@@ -81,15 +89,15 @@ public class AccountController {
     @PutMapping("/user/update-info")
     public ResponseEntity<APICustomize<AccountResponseDto>> updateAccountInfo(@RequestHeader("Authorization") String token,
                                                @ModelAttribute @Valid UpdateInfoRequest request) {
-        String jwtToken = token.substring(7);
-        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, jwtToken);
+        String accessToken = token.substring(7);
+        APICustomize<AccountResponseDto> response = accountService.updateAccountInfo(request, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @GetMapping("/user/me")
     public ResponseEntity<APICustomize<AccountResponseDto>> getAccountByToken(@RequestHeader("Authorization") String token) {
-        String jwtToken = token.substring(7);
-        APICustomize<AccountResponseDto> response = accountService.getAccountByToken(jwtToken);
+        String accessToken = token.substring(7);
+        APICustomize<AccountResponseDto> response = accountService.getAccountByToken(accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

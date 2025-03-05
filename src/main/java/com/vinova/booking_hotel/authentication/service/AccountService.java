@@ -1,9 +1,6 @@
 package com.vinova.booking_hotel.authentication.service;
 
-import com.vinova.booking_hotel.authentication.dto.request.ResetPasswordRequest;
-import com.vinova.booking_hotel.authentication.dto.request.SignInRequest;
-import com.vinova.booking_hotel.authentication.dto.request.SignUpRequest;
-import com.vinova.booking_hotel.authentication.dto.request.UpdateInfoRequest;
+import com.vinova.booking_hotel.authentication.dto.request.*;
 import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.dto.response.SignInResponseDto;
@@ -12,7 +9,7 @@ import java.util.List;
 
 public interface AccountService {
 
-    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder);
+    APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder);
 
     APICustomize<SignInResponseDto> signIn(SignInRequest request);
 
@@ -23,6 +20,8 @@ public interface AccountService {
     APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername);
 
     APICustomize<String> resetPassword(ResetPasswordRequest request);
+
+    APICustomize<String> changePassword(ChangePasswordRequest request, String token);
     
     APICustomize<String> UnBlockAccount(Long id);
 
