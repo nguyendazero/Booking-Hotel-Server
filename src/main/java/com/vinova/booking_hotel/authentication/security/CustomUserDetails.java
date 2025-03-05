@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import com.vinova.booking_hotel.authentication.model.Account;
-import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class CustomUserDetails implements UserDetails {
 
     private final Account account;
-
-    private final AccountRepository accountRepository;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
