@@ -12,6 +12,7 @@ import com.vinova.booking_hotel.authentication.repository.AccountRoleRepository;
 import com.vinova.booking_hotel.authentication.repository.RoleRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.AccountService;
+import com.vinova.booking_hotel.authentication.service.EmailService;
 import com.vinova.booking_hotel.authentication.specification.AccountSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -51,7 +52,7 @@ public class AccountServiceImpl implements AccountService {
     private final PasswordEncoder passwordEncoder;
 
     //Email
-    private final JavaMailSender javaMailSender;
+    private final EmailService emailService;
     private final Map<String, VerificationInfo> verificationMap = new HashMap<>();
 
     //Login
@@ -193,27 +194,6 @@ public class AccountServiceImpl implements AccountService {
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
-    private void sendVerificationEmail(Account account) {
-        String verificationCode = String.format("%06d", new Random().nextInt(999999));
-        LocalDateTime sentTime = LocalDateTime.now();
-
-        // Lưu thông tin tạm thời
-        verificationMap.put(account.getEmail(), new VerificationInfo(verificationCode, sentTime, account.getUsername(), account.getFullName()));
-
-        // Gửi email xác thực
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(account.getEmail());
-            message.setSubject("Verify account");
-            message.setText("Your verification code is: " + verificationCode + "\nThe verification code is valid for 60 seconds.");
-            javaMailSender.send(message);
-        } catch (MailException e) {
-            throw new RuntimeException("Email verification failed. Please try again!", e);
-        }
-    }
-    
-    
-
     @Override
     public APICustomize<String> signUp(SignUpRequest request) {
 
@@ -235,10 +215,11 @@ public class AccountServiceImpl implements AccountService {
 
             // Nếu tài khoản chưa được kích hoạt, gửi lại mã xác thực
             if (existingAccount.getBlockReason() != null) {
-                sendVerificationEmail(existingAccount);
+                String verificationCode = String.format("%06d", new Random().nextInt(999999));
+                verificationMap.put(existingAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), existingAccount.getUsername(), existingAccount.getFullName()));
+                emailService.sendAccountReactivationEmail(existingAccount.getEmail(), verificationCode);
                 return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account exists but not activated. Verification code sent again. Please verify to activate your account.");
             } else {
-                // Nếu tài khoản đã được kích hoạt, ném ra lỗi
                 throw new ResourceAlreadyExistsException("Account", "email");
             }
         }
@@ -267,7 +248,9 @@ public class AccountServiceImpl implements AccountService {
         accountRoleRepository.save(accountRole);
 
         // Gửi email xác thực cho tài khoản mới
-        sendVerificationEmail(newAccount);
+        String verificationCode = String.format("%06d", new Random().nextInt(999999));
+        verificationMap.put(newAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), newAccount.getUsername(), newAccount.getFullName()));
+        emailService.sendAccountVerificationEmail(newAccount.getEmail(), verificationCode);
 
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Verification code sent. Please verify to activate account.");
     }
@@ -315,11 +298,13 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername) {
-        
         String email;
-        if (emailOrUsername.contains("@gmail.com")) {
+
+        // Kiểm tra xem đầu vào có phải là email không
+        if (emailOrUsername.contains("@")) {
             email = emailOrUsername;
         } else {
+            // Tìm kiếm tài khoản bằng username
             Optional<Account> accountOptional = accountRepository.findByUsername(emailOrUsername);
             if (accountOptional.isPresent()) {
                 email = accountOptional.get().getEmail();
@@ -332,8 +317,14 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
-        sendVerificationEmail(account);
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Verification code sent to your email. Please verify to reset your password.");
+        // Tạo mã xác thực cho việc reset password
+        String verificationCode = String.format("%06d", new Random().nextInt(999999));
+        verificationMap.put(account.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), account.getUsername(), account.getFullName()));
+
+        // Gửi email xác thực cho reset password
+        emailService.sendPasswordResetEmail(account.getEmail(), verificationCode);
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Verification code sent to your email. Please check your email to reset your password.");
     }
 
     @Override
