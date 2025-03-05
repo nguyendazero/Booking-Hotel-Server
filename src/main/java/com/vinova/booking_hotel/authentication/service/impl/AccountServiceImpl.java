@@ -336,7 +336,7 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
 
         sendVerificationEmail(account);
-        return new APICustomize<>(ApiError.OK.getCode(), "Verification code sent to your email.", "Please verify to reset your password.");
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Verification code sent to your email. Please verify to reset your password.");
     }
 
     @Override
@@ -366,7 +366,7 @@ public class AccountServiceImpl implements AccountService {
         // Xóa thông tin xác thực
         verificationMap.remove(request.getEmail());
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Password has been reset successfully.");
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Password has been reset successfully.");
     }
 
     @Override
@@ -378,7 +378,7 @@ public class AccountServiceImpl implements AccountService {
         account.setBlockReason(null);
         accountRepository.save(account);
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account has been unblocked successfully.");
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Account has been unblocked successfully.");
     }
 
     @Override
@@ -419,7 +419,7 @@ public class AccountServiceImpl implements AccountService {
                 account.isEnabled()
         );
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), responseDto);
     }
 
     @Override

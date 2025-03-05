@@ -52,8 +52,6 @@ public class JwtUtils {
 
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Account", "username"));
-        
-        Long id = account.getId();
 
         // Lấy danh sách vai trò từ UserDetails
         List<String> roleNames = userDetails.getAuthorities().stream()
@@ -61,16 +59,19 @@ public class JwtUtils {
                 .collect(Collectors.toList());
 
         // Tạo token JWT với roles
-        String token = Jwts.builder()
+
+        return Jwts.builder()
                 .setSubject(username)
-                .claim("id", id)
+                .claim("id", account.getId())
+                .claim("email", account.getEmail())
+                .claim("fullName", account.getFullName())
+                .claim("phone", account.getPhone())
+                .claim("avatar", account.getAvatar())
                 .claim("roles", roleNames)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
-
-        return token;
     }
 
     public String generateRefreshTokenFromUserDetails(UserDetails userDetails) {
