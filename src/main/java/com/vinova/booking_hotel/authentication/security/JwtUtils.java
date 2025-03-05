@@ -51,7 +51,7 @@ public class JwtUtils {
         String username = userDetails.getUsername();
 
         Account account = accountRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "username"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Lấy danh sách vai trò từ UserDetails
         List<String> roleNames = userDetails.getAuthorities().stream()
@@ -95,7 +95,7 @@ public class JwtUtils {
 
             // Lấy thông tin tài khoản từ cơ sở dữ liệu
             Account account = accountRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Account", "username"));
+                    .orElseThrow(ResourceNotFoundException::new);
 
             // Kiểm tra xem refresh token có hợp lệ?
             if (!refreshToken.equals(account.getRefreshToken()) ||

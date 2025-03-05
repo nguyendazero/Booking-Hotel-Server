@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
 
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setErrorMessageId("NOTFOUND4041E");
-        errorDetail.setErrorMessage("Resource not found: " + ex.getResourceName() + " with " + ex.getFieldName());
+        errorDetail.setErrorMessage("Resource not found");
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);

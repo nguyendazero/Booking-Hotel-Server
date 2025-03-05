@@ -238,7 +238,7 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(newAccount);
 
         // Tạo và lưu mối quan hệ AccountRole
-        Role userRole = roleRepository.findByName("ROLE_USER").orElseThrow(() -> new ResourceNotFoundException("Role", "name"));
+        Role userRole = roleRepository.findByName("ROLE_USER").orElseThrow(ResourceNotFoundException::new);
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(newAccount);
         accountRole.setRole(userRole);
@@ -263,7 +263,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Cập nhật tài khoản đã tạo trước đó
         Account existingAccount = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Kích hoạt tài khoản
         existingAccount.setBlockReason(null);
@@ -306,13 +306,13 @@ public class AccountServiceImpl implements AccountService {
             if (accountOptional.isPresent()) {
                 email = accountOptional.get().getEmail();
             } else {
-                throw new ResourceNotFoundException("Account", "username");
+                throw new ResourceNotFoundException();
             }
         }
 
         // Gửi email xác thực
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Tạo mã xác thực cho việc reset password
         String verificationCode = String.format("%06d", new Random().nextInt(999999));
@@ -342,7 +342,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Cập nhật mật khẩu
         Account account = accountRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "email"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         String encodedPassword = passwordEncoder.encode(request.getNewPassword());
         account.setPassword(encodedPassword);
@@ -357,7 +357,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public APICustomize<String> UnBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
+                .orElseThrow(ResourceNotFoundException::new);
         
         account.setBlockReason(null);
         accountRepository.save(account);
@@ -371,7 +371,7 @@ public class AccountServiceImpl implements AccountService {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Cập nhật fullName
         if (request.getFullName() != null) {
@@ -418,7 +418,7 @@ public class AccountServiceImpl implements AccountService {
 
         // Tìm tài khoản bằng userId
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Tạo danh sách vai trò từ AccountRole
         List<String> roles = account.getAccountRoles().stream()
@@ -443,7 +443,7 @@ public class AccountServiceImpl implements AccountService {
     public APICustomize<String> deleteAccountById(Long accountId) {
         // Tìm tài khoản bằng accountId
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account", "id"));
+                .orElseThrow(ResourceNotFoundException::new);
 
         // Xóa tài khoản
         accountRepository.delete(account);
