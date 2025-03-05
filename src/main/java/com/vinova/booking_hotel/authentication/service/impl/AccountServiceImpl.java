@@ -143,7 +143,7 @@ public class AccountServiceImpl implements AccountService {
 
             // Kiểm tra nếu đã vượt quá số lần cho phép
             if (attempts >= MAX_FAILED_ATTEMPTS) {
-                account.setBlockReason("Too many failed login attempts, please register again to verify your account.");
+                account.setBlockReason("too_many_failed_login_attempts");
                 accountRepository.save(account);
 
                 // Đặt lại số lần không thành công về 0
@@ -471,7 +471,7 @@ public class AccountServiceImpl implements AccountService {
         List<Account> inactiveAccounts = accountRepository.findByLatestLoginBefore(thresholdDate);
 
         for (Account account : inactiveAccounts) {
-            account.setBlockReason("Long time no login");
+            account.setBlockReason("long_time_no_login");
             accountRepository.save(account);
         }
     }
