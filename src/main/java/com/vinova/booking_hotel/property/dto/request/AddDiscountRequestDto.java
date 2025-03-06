@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.property.dto.response;
+package com.vinova.booking_hotel.property.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DiscountResponseDto {
-    private Long id;
+public class AddDiscountRequestDto {
     private BigDecimal rate;
 }
