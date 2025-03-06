@@ -58,4 +58,29 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
         
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Amenity added to hotel");
     }
+
+    @Override
+    public APICustomize<String> removeAmenityFromHotel(Long amenityId, Long hotelId, String token) {
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        if (!hotel.getAccount().getId().equals(account.getId())) {
+            throw new RuntimeException("You do not have permission to remove amenities from this hotel");
+        }
+        
+        Amenity amenity = amenityRepository.findById(amenityId)
+                .orElseThrow(ResourceNotFoundException::new);
+        // Tìm kiếm Amenity trong hotelAmenity
+        HotelAmenity hotelAmenity = hotelAmenityRepository.findByHotelAndAmenity(hotel, amenity)
+                .orElseThrow(ResourceNotFoundException::new);
+        hotelAmenityRepository.delete(hotelAmenity);
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Amenity removed from hotel");
+    }
+
+
 }

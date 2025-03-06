@@ -22,7 +22,15 @@ public class HotelAmenityController {
         String accessToken = token.substring(7);
         APICustomize<String> response = hotelAmenityService.addAmenityToHotel(nameAmenity, hotelId, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
-        
+    }
+
+    @DeleteMapping("/owner/hotel-amenity")
+    public ResponseEntity<APICustomize<String>> removeAmenityFromHotel(@RequestParam Long amenityId,
+                                                                       @RequestParam Long hotelId,
+                                                                       @RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<String> response = hotelAmenityService.removeAmenityFromHotel(amenityId, hotelId, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
     
 }
