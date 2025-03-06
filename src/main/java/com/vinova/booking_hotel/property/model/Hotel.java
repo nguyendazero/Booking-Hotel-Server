@@ -67,6 +67,9 @@ public class Hotel {
     @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> bookings = new ArrayList<>();
 
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WishList> wishList = new ArrayList<>();
+
     @Column(name = "create_dt")
     @CreationTimestamp
     private ZonedDateTime createDt;

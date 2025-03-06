@@ -1,9 +1,6 @@
 package com.vinova.booking_hotel.authentication.model;
 
-import com.vinova.booking_hotel.property.model.Booking;
-import com.vinova.booking_hotel.property.model.Config;
-import com.vinova.booking_hotel.property.model.Hotel;
-import com.vinova.booking_hotel.property.model.Rating;
+import com.vinova.booking_hotel.property.model.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -78,5 +75,8 @@ public class Account {
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<AccountRole> accountRoles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WishList> wishList = new ArrayList<>();
     
 }
