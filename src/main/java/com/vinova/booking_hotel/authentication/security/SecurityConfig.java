@@ -42,19 +42,19 @@ public class SecurityConfig {
     }
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/v1/account/public/**"
+            "/api/v1/public/**"
     };
 
     private static final String[] ADMIN_ENDPOINTS = {
-            "/api/v1/account/admin/**"
+            "/api/v1/admin/**"
     };
 
     private static final String[] HOTEL_OWNER_ENDPOINTS = {
-            "/api/v1/account/owner/**"
+            "/api/v1/owner/**"
     };
 
     private static final String[] USER_ENDPOINTS = {
-            "/api/v1/account/user/**"
+            "/api/v1/user/**"
     };
 
     @Bean
