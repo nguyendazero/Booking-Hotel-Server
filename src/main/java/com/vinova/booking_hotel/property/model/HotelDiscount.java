@@ -24,10 +24,10 @@ public class HotelDiscount {
     private Long id;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    private ZonedDateTime startDate;
     
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
+    private ZonedDateTime endDate;
     
     @ManyToOne
     @JoinColumn(name = "hotel_id", nullable = false)

@@ -24,10 +24,10 @@ public class Booking {
     private Long id;
 
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime startDate;
+    private ZonedDateTime startDate;
     
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime endDate;
+    private ZonedDateTime endDate;
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
