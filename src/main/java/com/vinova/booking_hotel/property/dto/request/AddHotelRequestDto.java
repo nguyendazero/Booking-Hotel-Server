@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.property.dto.response;
+package com.vinova.booking_hotel.property.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +9,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HotelResponseDto {
-    private Long id;
+public class AddHotelRequestDto {
     private String name;
     private String description;
     private String highLightImageUrl;
@@ -18,5 +17,5 @@ public class HotelResponseDto {
     private String streetAddress;
     private String latitude;
     private String longitude;
-    private ImageResponseDto images;
+    private Long DistrictId;
 }
