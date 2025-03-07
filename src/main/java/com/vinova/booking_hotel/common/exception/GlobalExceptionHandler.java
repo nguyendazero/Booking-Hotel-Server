@@ -219,5 +219,23 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
+
+    @ExceptionHandler(OwnerRegistrationException.class)
+    public ResponseEntity<ErrorResponse> handleOwnerRegistrationException(HttpServletRequest request, OwnerRegistrationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorMessageId("OWNERREGISTRATION");
+        errorDetail.setErrorMessage(ex.getMessage());
+
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
     
 }
