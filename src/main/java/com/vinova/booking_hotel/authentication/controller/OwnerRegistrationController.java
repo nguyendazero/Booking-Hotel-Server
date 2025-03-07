@@ -31,5 +31,16 @@ public class OwnerRegistrationController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @PutMapping("/admin/owner-registration/accept-registration/{id}")
+    public ResponseEntity<APICustomize<Void>> acceptRegistration(@PathVariable Long id) {
+        APICustomize<Void> response = ownerRegistrationService.acceptRegistration(id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
+    @PutMapping("/admin/owner-registration/reject-registration/{id}")
+    public ResponseEntity<APICustomize<Void>> rejectRegistration(@PathVariable Long id) {
+        APICustomize<Void> response = ownerRegistrationService.rejectRegistration(id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
 
 }

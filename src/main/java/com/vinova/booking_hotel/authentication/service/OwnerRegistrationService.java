@@ -9,5 +9,9 @@ public interface OwnerRegistrationService {
     APICustomize<String> registerOwner(String token);
 
     APICustomize<List<OwnerRegistrationDto>> ownerRegistrations();
+
+    APICustomize<Void> acceptRegistration(Long ownerRegistrationId);
+    
+    APICustomize<Void> rejectRegistration(Long ownerRegistrationId);
     
 }

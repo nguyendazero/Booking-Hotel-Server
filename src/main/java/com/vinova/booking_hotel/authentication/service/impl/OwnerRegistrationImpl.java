@@ -4,9 +4,12 @@ import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.dto.response.OwnerRegistrationDto;
 import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.model.AccountRole;
 import com.vinova.booking_hotel.authentication.model.OwnerRegistration;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
+import com.vinova.booking_hotel.authentication.repository.AccountRoleRepository;
 import com.vinova.booking_hotel.authentication.repository.OwnerRegistrationRepository;
+import com.vinova.booking_hotel.authentication.repository.RoleRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.OwnerRegistrationService;
 import com.vinova.booking_hotel.common.enums.ApiError;
@@ -25,6 +28,8 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
     private final OwnerRegistrationRepository ownerRegistrationRepository;
     private final JwtUtils jwtUtils;
     private final AccountRepository accountRepository;
+    private final RoleRepository roleRepository;
+    private final AccountRoleRepository accountRoleRepository;
 
     @Override
     public APICustomize<String> registerOwner(String token) {
@@ -37,6 +42,12 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
             throw new OwnerRegistrationException("Only user can register");
         }
 
+        // Kiểm tra xem tài khoản đã là OWNER chưa
+        if (account.getAccountRoles().stream().anyMatch(role -> role.getRole().getName().equals("ROLE_OWNER"))) {
+            throw new OwnerRegistrationException("You are already an owner.");
+        }
+
+        // Kiểm tra xem tài khoản đã gửi request chưa
         if (ownerRegistrationRepository.findByAccountAndStatus(account, OwnerRegistrationStatus.PENDING).isPresent()) {
             throw new OwnerRegistrationException("You have a pending request");
         }
@@ -82,5 +93,46 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
                 .toList();
 
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
+    }
+
+    @Override
+    public APICustomize<Void> acceptRegistration(Long ownerRegistrationId) {
+        // Tìm yêu cầu đăng ký theo ID
+        OwnerRegistration ownerRegistration = ownerRegistrationRepository.findById(ownerRegistrationId)
+                .orElseThrow(ResourceNotFoundException::new);
+        
+        if(!ownerRegistration.getStatus().name().equals("PENDING")) {
+            throw new OwnerRegistrationException("This request handled");
+        }
+
+        // Thay đổi trạng thái yêu cầu đăng ký thành ACCEPTED
+        ownerRegistration.setStatus(OwnerRegistrationStatus.ACCEPTED);
+
+        AccountRole accountRole = new AccountRole();
+        accountRole.setAccount(ownerRegistration.getAccount());
+        accountRole.setRole(roleRepository.findByName("ROLE_OWNER").orElseThrow(ResourceNotFoundException::new));
+        accountRoleRepository.save(accountRole);
+        
+        // Lưu cập nhật vào repository
+        ownerRegistrationRepository.save(ownerRegistration);
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+    }
+
+    @Override
+    public APICustomize<Void> rejectRegistration(Long ownerRegistrationId) {
+        // Tìm yêu cầu đăng ký theo ID
+        OwnerRegistration ownerRegistration = ownerRegistrationRepository.findById(ownerRegistrationId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        if(!ownerRegistration.getStatus().name().equals("PENDING")) {
+            throw new OwnerRegistrationException("This request handled");
+        }
+
+        // Thay đổi trạng thái yêu cầu đăng ký thành REJECTED
+        ownerRegistration.setStatus(OwnerRegistrationStatus.REJECTED);
+
+        // Lưu cập nhật vào repository
+        ownerRegistrationRepository.save(ownerRegistration);
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
 }
