@@ -31,19 +31,19 @@ public class AmenityController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
-    @PostMapping("/admin/amenity")
+    @PostMapping("/owner/amenity")
     public ResponseEntity<APICustomize<AmenityResponseDto>> create(@RequestBody AddAmenityRequestDto requestDto) {
         APICustomize<AmenityResponseDto> response = amenityService.create(requestDto);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
-    @PutMapping("/admin/amenity/{id}")
+    @PutMapping("/owner/amenity/{id}")
     public ResponseEntity<APICustomize<AmenityResponseDto>> update(@PathVariable Long id, @RequestBody AddAmenityRequestDto requestDto) {
         APICustomize<AmenityResponseDto> response = amenityService.update(id, requestDto);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
-    @DeleteMapping("/admin/amenity/{id}")
+    @DeleteMapping("/owner/amenity/{id}")
     public ResponseEntity<APICustomize<Void>> delete(@PathVariable Long id) {
         APICustomize<Void> response = amenityService.delete(id);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
