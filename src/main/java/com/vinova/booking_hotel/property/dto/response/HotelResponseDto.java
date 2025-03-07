@@ -13,8 +13,8 @@ public class HotelResponseDto {
     private Long id;
     private String name;
     private String description;
-    private String highLightImageUrl;
     private BigDecimal pricePerDay;
+    private String highLightImageUrl;
     private String streetAddress;
     private String latitude;
     private String longitude;
