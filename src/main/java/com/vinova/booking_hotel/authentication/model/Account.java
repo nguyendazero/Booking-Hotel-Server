@@ -78,5 +78,8 @@ public class Account {
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WishList> wishList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OwnerRegistration> ownerRegistrations = new ArrayList<>();
     
 }
