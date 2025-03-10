@@ -147,5 +147,32 @@ public class BookingServiceImpl implements BookingService {
 
         return totalPrice;
     }
+
+    @Override
+    public APICustomize<BookingResponseDto> cancelBooking(Long bookingId, String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Tìm booking theo bookingId
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem account có phải là chủ sở hữu của booking không
+        if (!booking.getAccount().getId().equals(account.getId())) {
+            throw new RuntimeException("You do not have permission to cancel this booking");
+        }
+
+        // Kiểm tra trạng thái hiện tại của booking
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Only pending bookings can be cancelled");
+        }
+
+        // Cập nhật trạng thái của booking
+        booking.setStatus(BookingStatus.CANCELLED);
+        bookingRepository.save(booking);
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+    }
     
 }

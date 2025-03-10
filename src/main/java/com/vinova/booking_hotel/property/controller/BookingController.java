@@ -25,5 +25,13 @@ public class BookingController {
         APICustomize<BookingResponseDto> response = bookingService.createBooking(requestDto, hotelId, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
+
+    @PatchMapping("/user/booking/{bookingId}/cancel")
+    public ResponseEntity<APICustomize<BookingResponseDto>> cancelBooking(@PathVariable Long bookingId,
+                                                                          @RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<BookingResponseDto> response = bookingService.cancelBooking(bookingId, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
     
 }
