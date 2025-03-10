@@ -8,6 +8,8 @@ public interface BookingService {
 
     APICustomize<BookingResponseDto> createBooking(AddBookingRequestDto requestDto, Long hotelId, String token);
 
-    APICustomize<BookingResponseDto> cancelBooking(Long bookingId, String token);
+    APICustomize<Void> cancelBooking(Long bookingId, String token);
+
+    APICustomize<Void> confirmBooking(Long bookingId, String token);
         
 }

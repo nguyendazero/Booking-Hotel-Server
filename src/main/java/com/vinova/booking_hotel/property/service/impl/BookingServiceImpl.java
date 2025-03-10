@@ -154,7 +154,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public APICustomize<BookingResponseDto> cancelBooking(Long bookingId, String token) {
+    public APICustomize<Void> cancelBooking(Long bookingId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -179,5 +179,32 @@ public class BookingServiceImpl implements BookingService {
 
         return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
-    
+
+    @Override
+    public APICustomize<Void> confirmBooking(Long bookingId, String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Tìm booking theo bookingId
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem account có phải là chủ sở hữu của hotel không
+        if (!booking.getHotel().getAccount().getId().equals(account.getId())) {
+            throw new RuntimeException("You do not have permission to confirm this booking");
+        }
+
+        // Kiểm tra trạng thái hiện tại của booking
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Only pending bookings can be confirmed");
+        }
+
+        // Cập nhật trạng thái của booking
+        booking.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+    }
+
 }
