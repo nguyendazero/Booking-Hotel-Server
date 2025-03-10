@@ -52,6 +52,12 @@ public class BookingServiceImpl implements BookingService {
         if (requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
             throw new RuntimeException("Start date must be before end date");
         }
+        
+        // Kiểm tra xem có bất kỳ booking nào đã tồn tại cho khoảng thời gian này không
+        List<Booking> existingBookings = bookingRepository.findByHotelIdAndDateRange(hotelId, requestDto.getStartDate(), requestDto.getEndDate());
+        if (!existingBookings.isEmpty()) {
+            throw new RuntimeException("This hotel is already booked for the selected dates");
+        }
 
         // Tính tổng giá dựa trên thời gian và giảm giá
         BigDecimal totalPrice = calculateTotalPrice(requestDto, hotel);
