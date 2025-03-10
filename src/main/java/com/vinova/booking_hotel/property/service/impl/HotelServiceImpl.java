@@ -12,7 +12,7 @@ import com.vinova.booking_hotel.property.model.Image;
 import com.vinova.booking_hotel.property.model.Rating;
 import com.vinova.booking_hotel.property.repository.ImageRepository;
 import com.vinova.booking_hotel.property.repository.RatingRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -281,5 +281,41 @@ public class HotelServiceImpl implements HotelService {
         } else {
             throw new RuntimeException("You do not have permission to add images to this hotel");
         }
+    }
+
+    @Override
+    @Transactional
+    public APICustomize<Void> deleteImages(Long hotelId, List<Long> imageIds, String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+
+        // Lấy thông tin khách sạn và kiểm tra quyền truy cập
+        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
+        if (!Objects.equals(account.getId(), hotel.getAccount().getId())) {
+            throw new RuntimeException("You do not have permission to delete images from this hotel");
+        }
+
+        // Lấy danh sách hình ảnh theo ID
+        List<Image> images = imageRepository.findAllById(imageIds);
+
+        // Kiểm tra xem tất cả hình ảnh có thuộc về khách sạn không
+        for (Long imageId : imageIds) {
+            Image image = images.stream()
+                    .filter(img -> img.getId().equals(imageId))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Image with ID " + imageId + " not found"));
+
+            if (!Objects.equals(image.getHotel().getId(), hotelId)) {
+                throw new RuntimeException("Image with ID " + imageId + " does not belong to this hotel");
+            }
+        }
+
+        // Xóa tất cả hình ảnh khỏi cơ sở dữ liệu
+        imageRepository.deleteAll(images);
+
+        // Trả về phản hồi thành công
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
 }

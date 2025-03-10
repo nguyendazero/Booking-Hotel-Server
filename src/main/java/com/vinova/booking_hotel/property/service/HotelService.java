@@ -23,5 +23,7 @@ public interface HotelService {
     APICustomize<Void> delete(Long id, String token);
 
     APICustomize<List<ImageResponseDto>> addImages(Long hotelId, AddImagesRequestDto requestDto, String token);
+
+    APICustomize<Void> deleteImages(Long hotelId, List<Long> imageIds, String token);
     
 }
