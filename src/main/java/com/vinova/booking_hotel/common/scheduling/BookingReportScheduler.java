@@ -47,13 +47,15 @@ public class BookingReportScheduler {
                             .anyMatch(hotel -> hotel.getId().equals(booking.getHotel().getId())))
                     .collect(Collectors.toList());
 
-            // If there are no bookings, skip to the next owner
-            if (ownerBookings.isEmpty()) {
-                continue;
-            }
-
             // Create PDF report for the owner's bookings
-            String pdfFilePath = pdfService.createBookingReport(ownerBookings, today);
+            String pdfFilePath;
+            if (ownerBookings.isEmpty()) {
+                // Tạo PDF thông báo không có booking nào
+                pdfFilePath = pdfService.createBookingReportNoBookings(owner, today);
+            } else {
+                // Tạo PDF cho các booking của chủ sở hữu
+                pdfFilePath = pdfService.createBookingReport(ownerBookings, today);
+            }
 
             // Create email content
             String emailContent = "<html>" +

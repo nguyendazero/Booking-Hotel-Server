@@ -10,6 +10,7 @@ import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.service.PdfService;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,57 @@ public class PdfServiceImpl implements PdfService {
                 }
                 document.add(table);
             }
+
+            // Thêm footer
+            document.add(new Paragraph("-----------------------------------------------------")
+                    .setTextAlignment(TextAlignment.CENTER));
+            document.add(new Paragraph("Thank you for using our booking service!")
+                    .setTextAlignment(TextAlignment.CENTER));
+
+            document.close();
+        } catch (IOException e) {
+            System.out.println("ERROR CREATE PDF: " + e.getMessage());
+        }
+
+        return filePath;
+    }
+
+    @Override
+    public String createBookingReportNoBookings(Account owner, LocalDate date) {
+        // Tạo đường dẫn cho tệp PDF
+        String directoryPath = "reports";
+        File directory = new File(directoryPath);
+
+        // Kiểm tra và tạo thư mục nếu chưa tồn tại
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
+        String filePath = directoryPath + File.separator + "no_bookings_report_" + owner.getId() + "_" + date + ".pdf";
+
+        try {
+            PdfWriter writer = new PdfWriter(new File(filePath));
+            PdfDocument pdfDocument = new PdfDocument(writer);
+            Document document = new Document(pdfDocument);
+
+            // Thêm tiêu đề với định dạng
+            PdfFont font = PdfFontFactory.createFont("Helvetica-Bold");
+            Paragraph title = new Paragraph("No Bookings Report for " + owner.getUsername() + " on " + date)
+                    .setFont(font)
+                    .setFontSize(18)
+                    .setFontColor(ColorConstants.RED)
+                    .setTextAlignment(TextAlignment.CENTER);
+            document.add(title);
+
+            // Thêm một dòng phân cách
+            document.add(new Paragraph("-----------------------------------------------------")
+                    .setTextAlignment(TextAlignment.CENTER));
+
+            // Thêm nội dung thông báo không có booking
+            document.add(new Paragraph("There are no bookings for today.")
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontSize(14)
+                    .setFontColor(ColorConstants.BLACK));
 
             // Thêm footer
             document.add(new Paragraph("-----------------------------------------------------")
