@@ -15,6 +15,8 @@ import com.vinova.booking_hotel.property.service.HotelDiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class HotelDiscountServiceImpl implements HotelDiscountService {
@@ -31,7 +33,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         if (requestDto.getStartDate() == null || requestDto.getEndDate() == null) {
             throw new RuntimeException("Start date and end date must not be null");
         }
-        
+
         // Kiểm tra xem startDate có lớn hơn endDate không
         if (requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
             throw new RuntimeException("Start date must be before end date");
@@ -48,6 +50,12 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         // Kiểm tra quyền truy cập
         if (!hotel.getAccount().getId().equals(account.getId())) {
             throw new RuntimeException("You do not have permission to add discount to this hotel");
+        }
+
+        // Kiểm tra xem có bất kỳ discount nào đã tồn tại cho khoảng thời gian này không
+        List<HotelDiscount> existingDiscounts = hotelDiscountRepository.findByHotelIdAndDateRange(hotelId, requestDto.getStartDate(), requestDto.getEndDate());
+        if (!existingDiscounts.isEmpty()) {
+            throw new RuntimeException("A discount already exists for this date range");
         }
 
         Discount existingDiscount = discountRepository.findByRate(requestDto.getRate());
