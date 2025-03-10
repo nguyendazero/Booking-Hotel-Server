@@ -100,6 +100,7 @@ public class BookingServiceImpl implements BookingService {
                 savedBooking.getEndDate(),
                 savedBooking.getTotalPrice(),
                 savedBooking.getStatus().toString(),
+                savedBooking.getCreateDt(),
                 hotelResponse,
                 accountResponse
         );

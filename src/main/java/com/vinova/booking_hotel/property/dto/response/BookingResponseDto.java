@@ -17,6 +17,7 @@ public class BookingResponseDto {
     private ZonedDateTime endDate;
     private BigDecimal totalPrice;
     private String status;
+    private ZonedDateTime createDt;
     private HotelResponseDto hotel;
     private AccountResponseDto account;
 }
