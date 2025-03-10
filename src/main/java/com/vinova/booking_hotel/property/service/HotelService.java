@@ -2,7 +2,9 @@ package com.vinova.booking_hotel.property.service;
 
 import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.property.dto.request.AddHotelRequestDto;
+import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
+import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,5 +21,7 @@ public interface HotelService {
     APICustomize<Void> update(Long id, AddHotelRequestDto requestDto, String token);
 
     APICustomize<Void> delete(Long id, String token);
+
+    APICustomize<List<ImageResponseDto>> addImages(Long hotelId, AddImagesRequestDto requestDto, String token);
     
 }

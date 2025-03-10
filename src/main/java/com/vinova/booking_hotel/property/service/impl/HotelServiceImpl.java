@@ -6,8 +6,13 @@ import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
 import com.vinova.booking_hotel.common.enums.ApiError;
+import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
+import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
+import com.vinova.booking_hotel.property.model.Image;
 import com.vinova.booking_hotel.property.model.Rating;
+import com.vinova.booking_hotel.property.repository.ImageRepository;
 import com.vinova.booking_hotel.property.repository.RatingRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,12 +29,10 @@ import com.vinova.booking_hotel.property.service.HotelService;
 import com.vinova.booking_hotel.property.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +45,7 @@ public class HotelServiceImpl implements HotelService {
     private final DistrictRepository districtRepository;
     private final CloudinaryService cloudinaryService;
     private final RatingRepository ratingRepository;
+    private final ImageRepository imageRepository;
 
     @Override
     public APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name,
@@ -247,5 +251,35 @@ public class HotelServiceImpl implements HotelService {
         }
         
         return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+    }
+
+    @Override
+    public APICustomize<List<ImageResponseDto>> addImages(Long hotelId, AddImagesRequestDto requestDto, String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+
+        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
+
+        if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
+            List<ImageResponseDto> imageResponses = new ArrayList<>();
+
+            for (MultipartFile file : requestDto.getImageUrls()) {
+                if (file != null && !file.isEmpty()) {
+                    String imageUrl = cloudinaryService.uploadImage(file);
+                    Image image = new Image();
+                    image.setImageUrl(imageUrl);
+                    image.setHotel(hotel);
+
+                    // Lưu hình ảnh vào cơ sở dữ liệu
+                    imageRepository.save(image);
+
+                    // Thêm vào danh sách phản hồi
+                    imageResponses.add(new ImageResponseDto(image.getId(), imageUrl));
+                }
+            }
+            return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), imageResponses);
+        } else {
+            throw new RuntimeException("You do not have permission to add images to this hotel");
+        }
     }
 }

@@ -2,7 +2,9 @@ package com.vinova.booking_hotel.property.controller;
 
 import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.property.dto.request.AddHotelRequestDto;
+import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
+import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
 import com.vinova.booking_hotel.property.service.HotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,9 +49,9 @@ public class HotelController {
 
     @PatchMapping("/owner/hotel/{id}")
     public ResponseEntity<APICustomize<Void>> updateHotel(
-            @PathVariable Long id,
-            @ModelAttribute AddHotelRequestDto requestDto,
-            @RequestHeader("Authorization") String token) {
+                                            @PathVariable Long id,
+                                            @ModelAttribute AddHotelRequestDto requestDto,
+                                            @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         APICustomize<Void> response = hotelService.update(id, requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
@@ -62,9 +64,19 @@ public class HotelController {
     }
     
     @DeleteMapping("/owner/hotel/{id}")
-    public ResponseEntity<APICustomize<Void>> delete(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<APICustomize<Void>> delete(@PathVariable Long id, 
+                                                     @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         APICustomize<Void> response = hotelService.delete(id, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
+    @PostMapping("/owner/hotel/{hotelId}/images")
+    public ResponseEntity<APICustomize<List<ImageResponseDto>>> addImages(@PathVariable Long hotelId, 
+                                                                          @ModelAttribute AddImagesRequestDto requestDto, 
+                                                                          @RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<List<ImageResponseDto>> response = hotelService.addImages(hotelId, requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
     
