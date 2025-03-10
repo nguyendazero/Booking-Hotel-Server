@@ -4,6 +4,7 @@ import com.vinova.booking_hotel.authentication.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -95,21 +97,20 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendEmailWithAttachment(String to, String subject, String body, String attachmentPath) {
+    public void sendEmailWithAttachment(String to, String subject, String body, String attachmentPath) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper;
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        try {
-            helper = new MimeMessageHelper(message, true);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body);
-            File file = new File(attachmentPath);
-            helper.addAttachment(file.getName(), file);
-            javaMailSender.send(message);
-        } catch (MessagingException | MailException e) {
-            e.printStackTrace();
-        }
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body, true);
+
+        // Đính kèm tệp
+        FileSystemResource file = new FileSystemResource(new File(attachmentPath));
+        helper.addAttachment(Objects.requireNonNull(file.getFilename()), file);
+
+        // Gửi email
+        javaMailSender.send(message);
     }
     
 }

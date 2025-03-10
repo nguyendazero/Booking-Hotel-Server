@@ -6,6 +6,7 @@ import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.repository.BookingRepository;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.property.service.PdfService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,8 +25,9 @@ public class BookingReportScheduler {
     private final PdfService pdfService;
     private final AccountRepository accountRepository;
 
+//    @Scheduled(cron = "0 0 22 * * ?") // Chạy mỗi ngày lúc 22:00
     @Scheduled(cron = "0 */2 * * * ?") // Chạy mỗi 2 phút
-    public void generateDailyBookingReport() {
+    public void generateDailyBookingReport() throws MessagingException {
         LocalDate today = LocalDate.now();
         LocalDateTime dateTime = today.atStartOfDay(); // Chuyển đổi LocalDate sang LocalDateTime
 
@@ -37,16 +39,28 @@ public class BookingReportScheduler {
 
         // Tạo nội dung email
         StringBuilder emailContent = new StringBuilder();
-        emailContent.append("<h2>Booking Report for ").append(today).append("</h2><br>")
-                .append("Please find the attached booking report PDF for details.<br><br>")
-                .append("<strong>Total Bookings Today: </strong>").append(bookings.size()).append("<br><br>")
-                .append("Thank you!");
+        emailContent.append("<html>")
+                .append("<head>")
+                .append("<style>")
+                .append("body { font-family: Arial, sans-serif; margin: 20px; }")
+                .append("h2 { color: #4CAF50; }")
+                .append("strong { color: #333; }")
+                .append("ul { list-style-type: none; padding: 0; }")
+                .append("li { margin: 5px 0; }")
+                .append("</style>")
+                .append("</head>")
+                .append("<body>")
+                .append("<h2>Booking Report for ").append(today).append("</h2>")
+                .append("<p>Please find the attached booking report PDF for details.</p>")
+                .append("<p><strong>Total Bookings Today: </strong>").append(bookings.size()).append("</p>")
+                .append("<p>Thank you!</p>")
+                .append("</body>")
+                .append("</html>");
 
         // Gửi email cho tất cả các chủ khách sạn
         List<String> hotelOwnerEmails = getHotelOwnerEmails();
         for (String email : hotelOwnerEmails) {
-            // Gửi email với nội dung và đính kèm PDF
-            emailService.sendEmailWithAttachment(email, "Daily Booking Report", emailContent.toString(), pdfFilePath); // true để chỉ định nội dung là HTML
+            emailService.sendEmailWithAttachment(email, "Daily Booking Report", emailContent.toString(), pdfFilePath);
         }
     }
 
