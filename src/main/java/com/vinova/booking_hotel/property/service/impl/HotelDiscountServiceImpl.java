@@ -15,10 +15,6 @@ import com.vinova.booking_hotel.property.service.HotelDiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
-
 @Service
 @RequiredArgsConstructor
 public class HotelDiscountServiceImpl implements HotelDiscountService {
