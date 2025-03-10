@@ -5,7 +5,6 @@ import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.enums.ApiError;
-import com.vinova.booking_hotel.common.exception.ResourceAlreadyExistsException;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.model.Amenity;
 import com.vinova.booking_hotel.property.model.Hotel;
@@ -17,7 +16,6 @@ import com.vinova.booking_hotel.property.service.HotelAmenityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,31 +29,41 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
 
     @Override
     public APICustomize<String> addAmenityToHotel(String nameAmenity, Long hotelId, String token) {
+        // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
-        
+
+        // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
-        
-        if(!hotel.getAccount().getId().equals(account.getId())) {
-            throw new RuntimeException("You not have permission to add amenity to this hotel");
+
+        // Kiểm tra quyền truy cập
+        if (!hotel.getAccount().getId().equals(account.getId())) {
+            throw new RuntimeException("You do not have permission to add amenity to this hotel");
         }
 
-        List<Amenity> amenities = amenityRepository.findAll();
-        for (Amenity amenity : amenities) {
-            if (amenity.getName().equals(nameAmenity)) {
-                throw new ResourceAlreadyExistsException(nameAmenity);
-            }
+        // Tìm tiện nghi theo tên
+        Amenity existingAmenity = amenityRepository.findByName(nameAmenity);
+        if (existingAmenity != null) {
+            // Nếu tiện nghi đã tồn tại, tạo liên kết giữa khách sạn và tiện nghi
+            HotelAmenity hotelAmenity = new HotelAmenity();
+            hotelAmenity.setAmenity(existingAmenity);
+            hotelAmenity.setHotel(hotel);
+            hotelAmenityRepository.save(hotelAmenity);
+            return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Amenity added to hotel");
         }
+
+        // Nếu tiện nghi chưa tồn tại, tạo mới
         Amenity amenity = new Amenity();
         amenity.setName(nameAmenity);
         Amenity amenitySaved = amenityRepository.save(amenity);
-        
+
+        // Tạo liên kết mới giữa khách sạn và tiện nghi mới
         HotelAmenity hotelAmenity = new HotelAmenity();
         hotelAmenity.setAmenity(amenitySaved);
         hotelAmenity.setHotel(hotel);
         hotelAmenityRepository.save(hotelAmenity);
-        
+
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Amenity added to hotel");
     }
 

@@ -30,6 +30,16 @@ public class AmenityServiceImpl implements AmenityService {
     }
 
     @Override
+    public APICustomize<List<AmenityResponseDto>> amenitiesByHotelId(Long hotelId) {
+        List<Amenity> amenities = amenityRepository.findAmenitiesByHotelId(hotelId);
+        List<AmenityResponseDto> response = amenities.stream()
+                .map(amenity -> new AmenityResponseDto(amenity.getId(), amenity.getName()))
+                .toList();
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
+    }
+
+    @Override
     public APICustomize<AmenityResponseDto> amenity(Long id) {
         Amenity amenity = amenityRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
         AmenityResponseDto response = new AmenityResponseDto(amenity.getId(), amenity.getName());

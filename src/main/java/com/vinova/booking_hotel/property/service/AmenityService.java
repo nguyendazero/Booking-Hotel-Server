@@ -9,6 +9,8 @@ import java.util.List;
 public interface AmenityService {
     
     APICustomize<List<AmenityResponseDto>> amenities();
+
+    APICustomize<List<AmenityResponseDto>> amenitiesByHotelId(Long hotelId);
     
     APICustomize<AmenityResponseDto> amenity(Long id);
     

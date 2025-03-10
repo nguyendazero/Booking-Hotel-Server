@@ -25,6 +25,12 @@ public class AmenityController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @GetMapping("/public/hotel/{hotelId}/amenities")
+    public ResponseEntity<APICustomize<List<AmenityResponseDto>>> amenitiesByHotelId(@PathVariable Long hotelId) {
+        APICustomize<List<AmenityResponseDto>> response = amenityService.amenitiesByHotelId(hotelId);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @GetMapping("/public/amenity/{id}")
     public ResponseEntity<APICustomize<AmenityResponseDto>> amenity(@PathVariable Long id) {
         APICustomize<AmenityResponseDto> response = amenityService.amenity(id);

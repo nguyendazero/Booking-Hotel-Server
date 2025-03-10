@@ -19,4 +19,5 @@ public class HotelResponseDto {
     private String latitude;
     private String longitude;
     private ImageResponseDto images;
+    private Double rating;
 }

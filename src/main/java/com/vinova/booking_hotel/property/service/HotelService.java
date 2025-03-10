@@ -10,7 +10,7 @@ import java.util.List;
 public interface HotelService {
 
     //Loc theo districtId, AccountId, 
-    APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name, BigDecimal minPrice, BigDecimal maxPrice, int pageIndex, int pageSize, String sortBy, String sortOrder);
+    APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name, BigDecimal minPrice, BigDecimal maxPrice, List<String> amenityNames, int pageIndex, int pageSize, String sortBy, String sortOrder);
     
     APICustomize<HotelResponseDto> hotel(Long id);
     
