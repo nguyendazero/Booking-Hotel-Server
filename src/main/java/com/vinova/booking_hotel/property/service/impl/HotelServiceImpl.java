@@ -6,6 +6,8 @@ import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
 import com.vinova.booking_hotel.common.enums.ApiError;
+import com.vinova.booking_hotel.property.model.Rating;
+import com.vinova.booking_hotel.property.repository.RatingRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -27,6 +29,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +41,7 @@ public class HotelServiceImpl implements HotelService {
     private final AccountRepository accountRepository;
     private final DistrictRepository districtRepository;
     private final CloudinaryService cloudinaryService;
+    private final RatingRepository ratingRepository;
 
     @Override
     public APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name,
@@ -121,7 +125,32 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public APICustomize<HotelResponseDto> hotel(Long id) {
-        return null;
+        // Tìm khách sạn theo ID
+        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+
+        // Lấy danh sách đánh giá của khách sạn
+        List<Rating> ratings = ratingRepository.findByHotelId(id);
+        double averageRating = ratings.stream()
+                .mapToDouble(Rating::getStars)
+                .average()
+                .orElse(0.0);
+
+        // Chuyển đổi khách sạn thành HotelResponseDto
+        HotelResponseDto response = new HotelResponseDto(
+                hotel.getId(),
+                hotel.getName(),
+                hotel.getDescription(),
+                hotel.getPricePerDay(),
+                hotel.getHighLightImageUrl(),
+                hotel.getStreetAddress(),
+                hotel.getLatitude(),
+                hotel.getLongitude(),
+                null,
+                averageRating
+        );
+
+        // Trả về kết quả
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
@@ -165,11 +194,58 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public APICustomize<Void> update(Long id, AddHotelRequestDto requestDto, String token) {
-        return null;
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+
+        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
+            // Cập nhật thông tin khách sạn chỉ nếu có giá trị mới
+            if (requestDto.getName() != null) {
+                hotel.setName(requestDto.getName());
+            }
+            if (requestDto.getDescription() != null) {
+                hotel.setDescription(requestDto.getDescription());
+            }
+            if (requestDto.getPricePerDay() != null) {
+                hotel.setPricePerDay(requestDto.getPricePerDay());
+            }
+            if (requestDto.getStreetAddress() != null) {
+                hotel.setStreetAddress(requestDto.getStreetAddress());
+            }
+            if (requestDto.getLatitude() != null) {
+                hotel.setLatitude(requestDto.getLatitude());
+            }
+            if (requestDto.getLongitude() != null) {
+                hotel.setLongitude(requestDto.getLongitude());
+            }
+            if (requestDto.getHighLightImageUrl() != null && !requestDto.getHighLightImageUrl().isEmpty()) {
+                hotel.setHighLightImageUrl(cloudinaryService.uploadImage(requestDto.getHighLightImageUrl()));
+            }
+            if (requestDto.getDistrictId() != null) {
+                hotel.setDistrict(districtRepository.findById(requestDto.getDistrictId()).orElseThrow(ResourceNotFoundException::new));
+            }
+
+            // Lưu cập nhật
+            hotelRepository.save(hotel);
+        } else {
+            throw new RuntimeException("You do not have permission to update this hotel");
+        }
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
 
     @Override
     public APICustomize<Void> delete(Long id, String token) {
-        return null;
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        
+        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
+            hotelRepository.delete(hotel);
+        }else{
+            throw new RuntimeException("You not have permission to delete this hotel");
+        }
+        
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
 }

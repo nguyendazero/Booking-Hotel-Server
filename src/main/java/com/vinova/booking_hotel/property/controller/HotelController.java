@@ -44,5 +44,28 @@ public class HotelController {
         APICustomize<HotelResponseDto> response = hotelService.create(requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
+
+    @PatchMapping("/owner/hotel/{id}")
+    public ResponseEntity<APICustomize<Void>> updateHotel(
+            @PathVariable Long id,
+            @ModelAttribute AddHotelRequestDto requestDto,
+            @RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<Void> response = hotelService.update(id, requestDto, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
+    @GetMapping("/public/hotel/{id}")
+    public ResponseEntity<APICustomize<HotelResponseDto>> getHotelById(@PathVariable Long id) {
+        APICustomize<HotelResponseDto> response = hotelService.hotel(id);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+    
+    @DeleteMapping("/owner/hotel/{id}")
+    public ResponseEntity<APICustomize<Void>> delete(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<Void> response = hotelService.delete(id, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
     
 }
