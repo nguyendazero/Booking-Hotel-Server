@@ -26,5 +26,15 @@ public class HotelDiscountController {
         APICustomize<String> response = hotelDiscountService.addDiscountToHotel(requestDto, hotelId, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
+
+    @DeleteMapping("/owner/hotel-discount/{hotelDiscountId}")
+    public ResponseEntity<APICustomize<String>> deleteHotelDiscount(
+            @PathVariable Long hotelDiscountId,
+            @RequestHeader("Authorization") String token) {
+
+        String accessToken = token.substring(7);
+        APICustomize<String> response = hotelDiscountService.deleteHotelDiscount(hotelDiscountId, accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
     
 }

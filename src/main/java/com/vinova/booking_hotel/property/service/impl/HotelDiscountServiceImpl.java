@@ -81,4 +81,29 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
 
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Discount added to hotel");
     }
+
+    @Override
+    public APICustomize<String> deleteHotelDiscount(Long hotelDiscountId, String token) {
+        // Tìm hotelDiscount theo hotelDiscountId
+        HotelDiscount hotelDiscount = hotelDiscountRepository.findById(hotelDiscountId)
+                .orElseThrow(() -> new RuntimeException("Discount not found"));
+
+        // Tìm khách sạn từ hotelDiscount
+        Hotel hotel = hotelDiscount.getHotel();
+
+        // Lấy accountId từ token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra quyền truy cập
+        if (!hotel.getAccount().getId().equals(account.getId())) {
+            throw new RuntimeException("You do not have permission to delete discount from this hotel");
+        }
+
+        // Xóa hotelDiscount
+        hotelDiscountRepository.delete(hotelDiscount);
+
+        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Discount deleted successfully");
+    }
 }
