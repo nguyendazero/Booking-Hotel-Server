@@ -121,38 +121,28 @@ public class BookingServiceImpl implements BookingService {
 
         // Lấy danh sách giảm giá của khách sạn
         List<HotelDiscount> hotelDiscounts = hotelDiscountRepository.findByHotelId(hotel.getId());
-        ZonedDateTime currentStartDate = startDate;
 
-        while (currentStartDate.isBefore(endDate)) {
-            boolean discountApplied = false;
+        // Duyệt từ startDate đến endDate theo từng ngày
+        ZonedDateTime currentDate = startDate;
+
+        while (currentDate.isBefore(endDate)) {
+            BigDecimal dailyPrice = hotel.getPricePerDay();
 
             // Kiểm tra từng giảm giá để tính toán
             for (HotelDiscount hotelDiscount : hotelDiscounts) {
-                if (hotelDiscount.getStartDate().isBefore(endDate) && hotelDiscount.getEndDate().isAfter(currentStartDate)) {
-                    // Tính toán thời gian đặt trong khoảng giảm giá
-                    ZonedDateTime discountStartDate = currentStartDate.isBefore(hotelDiscount.getStartDate()) ? hotelDiscount.getStartDate() : currentStartDate;
-                    ZonedDateTime discountEndDate = endDate.isAfter(hotelDiscount.getEndDate()) ? hotelDiscount.getEndDate() : endDate;
-
-                    // Lấy tỷ lệ giảm giá và chuyển đổi thành tỷ lệ phần trăm
+                // Kiểm tra xem ngày hiện tại có nằm trong khoảng giảm giá không
+                if (hotelDiscount.getStartDate().isBefore(currentDate.plusDays(1)) && hotelDiscount.getEndDate().isAfter(currentDate)) {
+                    // Nếu có, tính toán giá sau giảm giá
                     BigDecimal discountRate = hotelDiscount.getDiscount().getRate().divide(BigDecimal.valueOf(100));
-                    BigDecimal discountedPrice = hotel.getPricePerDay().multiply(BigDecimal.ONE.subtract(discountRate));
-
-                    long daysInDiscount = java.time.Duration.between(discountStartDate, discountEndDate).toDays();
-                    totalPrice = totalPrice.add(discountedPrice.multiply(BigDecimal.valueOf(daysInDiscount)));
-
-                    // Cập nhật currentStartDate
-                    currentStartDate = discountEndDate;
-                    discountApplied = true;
-                    break; // Chỉ cần tìm giảm giá đầu tiên
+                    dailyPrice = dailyPrice.multiply(BigDecimal.ONE.subtract(discountRate));
                 }
             }
 
-            // Nếu không còn giảm giá, tính theo giá của khách sạn
-            if (!discountApplied && currentStartDate.isBefore(endDate)) {
-                long daysWithoutDiscount = java.time.Duration.between(currentStartDate, endDate).toDays();
-                totalPrice = totalPrice.add(hotel.getPricePerDay().multiply(BigDecimal.valueOf(daysWithoutDiscount)));
-                currentStartDate = endDate; // Kết thúc vòng lặp
-            }
+            // Cộng dồn giá vào totalPrice
+            totalPrice = totalPrice.add(dailyPrice);
+
+            // Tiến đến ngày tiếp theo
+            currentDate = currentDate.plusDays(1);
         }
 
         return totalPrice;
