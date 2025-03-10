@@ -9,6 +9,7 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.layout.properties.TextAlignment;
 import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.service.PdfService;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,16 @@ public class PdfServiceImpl implements PdfService {
 
     @Override
     public String createBookingReport(List<Booking> bookings, LocalDate date) {
-        String filePath = "reports/booking_report_" + date + ".pdf";
+        // Tạo đường dẫn cho tệp PDF
+        String directoryPath = "reports";
+        File directory = new File(directoryPath);
+
+        // Kiểm tra và tạo thư mục nếu chưa tồn tại
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+
+        String filePath = directoryPath + File.separator + "booking_report_" + date + ".pdf";
 
         try {
             PdfWriter writer = new PdfWriter(new File(filePath));
@@ -34,16 +44,18 @@ public class PdfServiceImpl implements PdfService {
             PdfFont font = PdfFontFactory.createFont("Helvetica-Bold");
             Paragraph title = new Paragraph("Booking Report for " + date)
                     .setFont(font)
-                    .setFontSize(18) // Kích thước phông chữ
-                    .setFontColor(ColorConstants.BLUE); // Màu phông chữ
+                    .setFontSize(18)
+                    .setFontColor(ColorConstants.GREEN)
+                    .setTextAlignment(TextAlignment.CENTER);
             document.add(title);
 
             // Thêm một dòng phân cách
-            document.add(new Paragraph("-----------------------------------------------------"));
+            document.add(new Paragraph("-----------------------------------------------------")
+                    .setTextAlignment(TextAlignment.CENTER));
 
             // Tạo bảng cho các booking
-            Table table = new Table(6); // Số cột
-            table.setWidth(100); // Đặt chiều rộng bảng
+            Table table = new Table(6);
+            table.setWidth(100);
 
             // Thêm tiêu đề cho bảng
             table.addHeaderCell(new Cell().add(new Paragraph("Booking ID")).setBackgroundColor(ColorConstants.LIGHT_GRAY));
@@ -54,7 +66,8 @@ public class PdfServiceImpl implements PdfService {
             table.addHeaderCell(new Cell().add(new Paragraph("Status")).setBackgroundColor(ColorConstants.LIGHT_GRAY));
 
             if (bookings.isEmpty()) {
-                document.add(new Paragraph("No bookings for today."));
+                document.add(new Paragraph("No bookings for today.")
+                        .setTextAlignment(TextAlignment.CENTER));
             } else {
                 for (Booking booking : bookings) {
                     table.addCell(new Cell().add(new Paragraph(String.valueOf(booking.getId()))));
@@ -68,12 +81,14 @@ public class PdfServiceImpl implements PdfService {
             }
 
             // Thêm footer
-            document.add(new Paragraph("-----------------------------------------------------"));
-            document.add(new Paragraph("Thank you for using our booking service!"));
+            document.add(new Paragraph("-----------------------------------------------------")
+                    .setTextAlignment(TextAlignment.CENTER));
+            document.add(new Paragraph("Thank you for using our booking service!")
+                    .setTextAlignment(TextAlignment.CENTER));
 
             document.close();
         } catch (IOException e) {
-            System.out.println("Lỗi khi tạo báo cáo PDF: " + e.getMessage());
+            System.out.println("ERROR CREATE PDF: " + e.getMessage());
         }
 
         return filePath;
