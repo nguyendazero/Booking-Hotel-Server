@@ -89,7 +89,7 @@ public class HotelServiceImpl implements HotelService {
             averageRatings.put(hotel.getId(), averageRating);
         }
 
-        // Sắp xếp theo rating hoặc pricePerDay
+        // Sắp xếp theo rating, pricePerDay hoặc id
         if (sortBy != null) {
             Sort.Direction direction = sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
@@ -97,12 +97,16 @@ public class HotelServiceImpl implements HotelService {
                 filteredHotels.sort((h1, h2) -> {
                     Double rating1 = averageRatings.get(h1.getId());
                     Double rating2 = averageRatings.get(h2.getId());
-                    // So sánh và xử lý null
                     return (rating1 == null ? 0 : rating1.compareTo(rating2)) * (direction == Sort.Direction.ASC ? 1 : -1);
                 });
             } else if ("pricePerDay".equalsIgnoreCase(sortBy)) {
                 filteredHotels.sort((h1, h2) -> {
                     int comparison = h1.getPricePerDay().compareTo(h2.getPricePerDay());
+                    return direction == Sort.Direction.ASC ? comparison : -comparison;
+                });
+            } else if ("id".equalsIgnoreCase(sortBy)) {
+                filteredHotels.sort((h1, h2) -> {
+                    int comparison = h1.getId().compareTo(h2.getId());
                     return direction == Sort.Direction.ASC ? comparison : -comparison;
                 });
             }
