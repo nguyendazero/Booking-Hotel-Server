@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -15,5 +16,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByHotelIdAndDateRange(@Param("hotelId") Long hotelId,
                                             @Param("startDate") ZonedDateTime startDate,
                                             @Param("endDate") ZonedDateTime endDate);
+
+    @Query("SELECT b FROM Booking b WHERE DATE(b.createDt) = :date")
+    List<Booking> findByCreateDt(@Param("date") LocalDateTime date);
     
 }

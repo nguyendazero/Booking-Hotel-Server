@@ -20,6 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, Long>, JpaSpec
     boolean existsByUsername(String username);
 
     List<Account> findByLatestLoginBefore(LocalDateTime dateTime);
+
+    List<Account> findByAccountRoles_RoleName(String roleName);
     
 }
     

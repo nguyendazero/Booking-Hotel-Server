@@ -94,13 +94,12 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(to, subject, text);
     }
 
-    @Override
     public void sendEmailWithAttachment(String to, String subject, String body, String attachmentPath) {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper;
 
         try {
-            helper = new MimeMessageHelper(message, true);
+            helper = new MimeMessageHelper(message, true); // true = multipart
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body);
@@ -108,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
             helper.addAttachment(file.getName(), file);
             javaMailSender.send(message);
         } catch (MessagingException | MailException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Xử lý ngoại lệ nếu cần
         }
     }
     
