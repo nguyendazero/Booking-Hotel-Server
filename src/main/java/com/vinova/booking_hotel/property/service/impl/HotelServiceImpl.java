@@ -125,7 +125,7 @@ public class HotelServiceImpl implements HotelService {
                         hotel.getLatitude(),
                         hotel.getLongitude(),
                         null,
-                        averageRatings.get(hotel.getId()),
+                        averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                         null
                 )).toList();
 
