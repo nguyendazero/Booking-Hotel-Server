@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
@@ -25,4 +26,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByHotelId(Long hotelId);
 
     boolean existsByHotelAndAccount(Hotel hotel, Account account);
+
+    Optional<Booking> findFirstByHotelAndAccount(Hotel hotel, Account account);
+    
 }

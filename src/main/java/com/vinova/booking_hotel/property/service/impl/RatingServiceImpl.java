@@ -6,9 +6,11 @@ import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.enums.ApiError;
+import com.vinova.booking_hotel.common.enums.BookingStatus;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddRatingRequestDto;
 import com.vinova.booking_hotel.property.dto.response.RatingResponseDto;
+import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.model.Hotel;
 import com.vinova.booking_hotel.property.model.Rating;
 import com.vinova.booking_hotel.property.repository.BookingRepository;
@@ -92,10 +94,12 @@ public class RatingServiceImpl implements RatingService {
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Kiểm tra xem người dùng đã đặt phòng tại khách sạn này chưa
-        boolean hasBooked = bookingRepository.existsByHotelAndAccount(hotel, account);
+        Booking booking = bookingRepository.findFirstByHotelAndAccount(hotel, account)
+                .orElseThrow(() -> new RuntimeException("You must book a room at this hotel before leaving a rating"));
 
-        if (!hasBooked) {
-            throw new RuntimeException("You must book a room at this hotel before leaving a rating");
+        // Kiểm tra trạng thái của booking
+        if (!booking.getStatus().equals(BookingStatus.CHECKOUT) && !booking.getStatus().equals(BookingStatus.CHECKIN)) {
+            throw new RuntimeException("You can only leave a rating after checking in or checking out.");
         }
 
         // Tạo đối tượng Rating mới
