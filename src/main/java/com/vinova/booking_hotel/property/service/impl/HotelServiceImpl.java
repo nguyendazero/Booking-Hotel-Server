@@ -7,11 +7,10 @@ import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
 import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
+import com.vinova.booking_hotel.property.dto.response.DateRangeResponseDto;
 import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
-import com.vinova.booking_hotel.property.model.Image;
-import com.vinova.booking_hotel.property.model.Rating;
-import com.vinova.booking_hotel.property.repository.ImageRepository;
-import com.vinova.booking_hotel.property.repository.RatingRepository;
+import com.vinova.booking_hotel.property.model.*;
+import com.vinova.booking_hotel.property.repository.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +20,6 @@ import com.vinova.booking_hotel.common.exception.InvalidPageOrSizeException;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddHotelRequestDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
-import com.vinova.booking_hotel.property.model.District;
-import com.vinova.booking_hotel.property.model.Hotel;
-import com.vinova.booking_hotel.property.repository.DistrictRepository;
-import com.vinova.booking_hotel.property.repository.HotelRepository;
 import com.vinova.booking_hotel.property.service.HotelService;
 import com.vinova.booking_hotel.property.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +42,7 @@ public class HotelServiceImpl implements HotelService {
     private final CloudinaryService cloudinaryService;
     private final RatingRepository ratingRepository;
     private final ImageRepository imageRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name,
@@ -129,7 +125,8 @@ public class HotelServiceImpl implements HotelService {
                         hotel.getLatitude(),
                         hotel.getLongitude(),
                         null,
-                        averageRatings.get(hotel.getId())
+                        averageRatings.get(hotel.getId()),
+                        null
                 )).toList();
 
         // Trả về kết quả
@@ -141,12 +138,19 @@ public class HotelServiceImpl implements HotelService {
         // Tìm khách sạn theo ID
         Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
 
-        // Lấy danh sách đánh giá của khách sạn
-        List<Rating> ratings = ratingRepository.findByHotelId(id);
-        double averageRating = ratings.stream()
-                .mapToDouble(Rating::getStars)
-                .average()
-                .orElse(0.0);
+        // Lấy điểm đánh giá trung bình của khách sạn
+        Double averageRating = ratingRepository.findAverageRatingByHotelId(id);
+
+        // Lấy danh sách đặt phòng của khách sạn
+        List<Booking> bookings = bookingRepository.findByHotelId(id);
+
+        // Chuyển đổi các đặt phòng thành DateRangeResponseDto
+        List<DateRangeResponseDto> bookedDates = bookings.stream()
+                .map(booking -> new DateRangeResponseDto(
+                        booking.getStartDate(),
+                        booking.getEndDate()
+                ))
+                .collect(Collectors.toList());
 
         // Chuyển đổi khách sạn thành HotelResponseDto
         HotelResponseDto response = new HotelResponseDto(
@@ -159,7 +163,8 @@ public class HotelServiceImpl implements HotelService {
                 hotel.getLatitude(),
                 hotel.getLongitude(),
                 null,
-                averageRating
+                averageRating != null ? averageRating : 0.0,
+                bookedDates
         );
 
         // Trả về kết quả
@@ -198,6 +203,7 @@ public class HotelServiceImpl implements HotelService {
                 savedHotel.getStreetAddress(),
                 savedHotel.getLatitude(),
                 savedHotel.getLongitude(),
+                null,
                 null,
                 null
         );

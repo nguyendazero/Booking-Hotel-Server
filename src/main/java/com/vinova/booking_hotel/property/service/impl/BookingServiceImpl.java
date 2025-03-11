@@ -80,7 +80,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Tính toán điểm số trung bình cho khách sạn
         Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
-
+        
         // Tạo BookingResponseDto
         HotelResponseDto hotelResponse = new HotelResponseDto(
                 hotel.getId(),
@@ -91,8 +91,9 @@ public class BookingServiceImpl implements BookingService {
                 hotel.getStreetAddress(),
                 hotel.getLatitude(),
                 hotel.getLongitude(),
-                null, // images, null
-                averageRating
+                null,
+                averageRating,
+                null
         );
 
         AccountResponseDto accountResponse = new AccountResponseDto(
@@ -102,7 +103,7 @@ public class BookingServiceImpl implements BookingService {
                 account.getEmail(),
                 account.getAvatar(),
                 account.getPhone(),
-                null // list role null
+                null
         );
 
         BookingResponseDto response = new BookingResponseDto(

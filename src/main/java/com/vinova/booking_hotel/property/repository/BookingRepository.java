@@ -19,5 +19,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT b FROM Booking b WHERE DATE(b.createDt) = :date")
     List<Booking> findByCreateDt(@Param("date") LocalDateTime date);
+
+    List<Booking> findByHotelId(Long hotelId);
     
 }
