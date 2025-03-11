@@ -1,6 +1,7 @@
 package com.vinova.booking_hotel.property.repository;
 
 import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.common.enums.BookingStatus;
 import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.model.Hotel;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,5 +27,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByHotelId(Long hotelId);
 
     Optional<Booking> findFirstByHotelAndAccount(Hotel hotel, Account account);
+
+    List<Booking> findByStartDateBeforeAndStatus(ZonedDateTime startDate, BookingStatus status);
+    List<Booking> findByEndDateBeforeAndStatus(ZonedDateTime endDate, BookingStatus status);
     
 }
