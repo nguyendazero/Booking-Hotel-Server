@@ -25,8 +25,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByHotelId(Long hotelId);
 
-    boolean existsByHotelAndAccount(Hotel hotel, Account account);
-
     Optional<Booking> findFirstByHotelAndAccount(Hotel hotel, Account account);
     
 }
