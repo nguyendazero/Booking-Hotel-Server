@@ -11,6 +11,7 @@ import com.vinova.booking_hotel.property.dto.response.DateRangeResponseDto;
 import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
 import com.vinova.booking_hotel.property.model.*;
 import com.vinova.booking_hotel.property.repository.*;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,13 +68,14 @@ public class HotelServiceImpl implements HotelService {
                 .and(HotelSpecification.isAvailableBetween(startDate, endDate));
 
         // Sử dụng Pageable từ Spring Data
-        Pageable pageable = PageRequest.of(pageIndex, pageSize);
-
+        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
+        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+        
         // Tìm danh sách khách sạn với Specification và phân trang
-        List<Hotel> hotels = hotelRepository.findAll(spec, pageable).getContent();
+        Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
 
         // Lọc các khách sạn để đảm bảo có đủ số lượng tiện nghi
-        List<Hotel> filteredHotels = hotels.stream()
+        List<Hotel> filteredHotels = hotelPage.getContent().stream()
                 .filter(hotel -> {
                     if (amenityNames == null) return true; // Nếu amenityNames là null, không lọc
                     long count = hotel.getHotelAmenities().stream()
@@ -95,7 +97,7 @@ public class HotelServiceImpl implements HotelService {
 
         // Sắp xếp theo rating, pricePerDay hoặc id
         if (sortBy != null) {
-            Sort.Direction direction = sortOrder != null && sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
             if ("rating".equalsIgnoreCase(sortBy)) {
                 filteredHotels.sort((h1, h2) -> {
