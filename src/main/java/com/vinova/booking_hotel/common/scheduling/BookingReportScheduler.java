@@ -26,8 +26,8 @@ public class BookingReportScheduler {
     private final PdfService pdfService;
     private final AccountRepository accountRepository;
 
-//    @Scheduled(cron = "0 0 22 * * ?") // Run every day at 22:00
-    @Scheduled(cron = "0 */2 * * * ?") // Run every 2 minutes
+    @Scheduled(cron = "0 0 22 * * ?") // Run every day at 22:00
+//    @Scheduled(cron = "0 */2 * * * ?") // Run every 2 minutes
     public void generateDailyBookingReport() throws MessagingException {
         LocalDate today = LocalDate.now();
         LocalDateTime dateTime = today.atStartOfDay(); // Convert LocalDate to LocalDateTime

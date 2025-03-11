@@ -8,6 +8,9 @@ import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.enums.BookingStatus;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
+import com.vinova.booking_hotel.payment.dto.PaymentRequestDto;
+import com.vinova.booking_hotel.payment.dto.StripeResponseDto;
+import com.vinova.booking_hotel.payment.service.StripeService;
 import com.vinova.booking_hotel.property.dto.request.AddBookingRequestDto;
 import com.vinova.booking_hotel.property.dto.response.BookingResponseDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
@@ -17,7 +20,6 @@ import com.vinova.booking_hotel.property.model.HotelDiscount;
 import com.vinova.booking_hotel.property.repository.BookingRepository;
 import com.vinova.booking_hotel.property.repository.HotelDiscountRepository;
 import com.vinova.booking_hotel.property.repository.HotelRepository;
-import com.vinova.booking_hotel.property.repository.RatingRepository;
 import com.vinova.booking_hotel.property.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,10 +37,10 @@ public class BookingServiceImpl implements BookingService {
     private final AccountRepository accountRepository; 
     private final JwtUtils jwtUtils;
     private final HotelDiscountRepository hotelDiscountRepository;
-    private final RatingRepository ratingRepository;
+    private final StripeService stripeService;
 
     @Override
-    public APICustomize<BookingResponseDto> createBooking(AddBookingRequestDto requestDto, Long hotelId, String token) {
+    public APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, Long hotelId, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -84,46 +86,54 @@ public class BookingServiceImpl implements BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        // Tính toán điểm số trung bình cho khách sạn
-        Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
-        Long reviewCount = ratingRepository.countByHotel(hotel);
-        
-        // Tạo BookingResponseDto
-        HotelResponseDto hotelResponse = new HotelResponseDto(
-                hotel.getId(),
+        // Tạo PaymentRequestDto
+        PaymentRequestDto paymentRequestDto = new PaymentRequestDto(
+                savedBooking.getTotalPrice().longValue() * 100,
+                1L,
                 hotel.getName(),
-                hotel.getDescription(),
-                hotel.getPricePerDay(),
-                hotel.getHighLightImageUrl(),
-                hotel.getStreetAddress(),
-                hotel.getLatitude(),
-                hotel.getLongitude(),
-                averageRating,
-                reviewCount,
-                null,
-                null
+                "USD"
         );
 
-        AccountResponseDto accountResponse = new AccountResponseDto(
-                account.getId(),
-                account.getFullName(),
-                account.getUsername(),
-                account.getEmail(),
-                account.getAvatar(),
-                account.getPhone(),
-                null
-        );
+        // Gọi dịch vụ thanh toán
+        StripeResponseDto stripe = stripeService.checkoutBooking(paymentRequestDto);
 
-        BookingResponseDto response = new BookingResponseDto(
+        // Tạo đối tượng phản hồi StripeResponseDto
+        StripeResponseDto response = new StripeResponseDto();
+        response.setBooking(new BookingResponseDto(
                 savedBooking.getId(),
                 savedBooking.getStartDate(),
                 savedBooking.getEndDate(),
                 savedBooking.getTotalPrice(),
-                savedBooking.getStatus().toString(),
+                booking.getStatus().toString(),
                 savedBooking.getCreateDt(),
-                hotelResponse,
-                accountResponse
-        );
+                new HotelResponseDto(
+                        hotel.getId(),
+                        hotel.getName(),
+                        hotel.getDescription(),
+                        hotel.getPricePerDay(),
+                        hotel.getHighLightImageUrl(),
+                        hotel.getStreetAddress(),
+                        hotel.getLatitude(),
+                        hotel.getLongitude(),
+                        null,
+                        null,
+                        null,
+                        null
+                ),
+                new AccountResponseDto(
+                        account.getId(),
+                        account.getFullName(),
+                        account.getUsername(),
+                        account.getEmail(),
+                        account.getAvatar(),
+                        account.getPhone(),
+                        null
+                )
+        ));
+
+        // Thêm thông tin phiên thanh toán vào phản hồi
+        response.setSessionId(stripe.getSessionId());
+        response.setSessionUrl(stripe.getSessionUrl());
 
         return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), response);
     }
