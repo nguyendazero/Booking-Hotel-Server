@@ -53,6 +53,12 @@ public class BookingServiceImpl implements BookingService {
             throw new RuntimeException("Start date must be before end date");
         }
 
+        // Kiểm tra xem startDate và endDate không nằm trong quá khứ
+        ZonedDateTime now = ZonedDateTime.now();
+        if (requestDto.getStartDate().isBefore(now) || requestDto.getEndDate().isBefore(now)) {
+            throw new RuntimeException("Booking dates must not be in the past");
+        }
+
         // Kiểm tra xem có bất kỳ booking nào đã tồn tại cho khoảng thời gian này không
         List<Booking> existingBookings = bookingRepository.findByHotelIdAndDateRange(hotelId, requestDto.getStartDate(), requestDto.getEndDate());
 
