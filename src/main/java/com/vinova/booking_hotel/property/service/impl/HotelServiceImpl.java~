@@ -125,12 +125,12 @@ public class HotelServiceImpl implements HotelService {
                         hotel.getPricePerDay(),
                         hotel.getHighLightImageUrl(),
                         hotel.getStreetAddress(),
-                        hotel.getLatitude(),
-                        hotel.getLongitude(),
-                        null,
+                        hotel.getLatitude().toString(), // Chuyển đổi latitude sang String
+                        hotel.getLongitude().toString(), // Chuyển đổi longitude sang String
+                        null, // Hình ảnh nếu có
                         averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                         reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
-                        null
+                        null // Danh sách bookedDates nếu có
                 )).toList();
 
         // Trả về kết quả

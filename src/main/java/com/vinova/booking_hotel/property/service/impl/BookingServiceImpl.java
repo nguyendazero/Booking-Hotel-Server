@@ -80,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
 
         // Tính toán điểm số trung bình cho khách sạn
         Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
+        Long reviewCount = ratingRepository.countByHotel(hotel);
         
         // Tạo BookingResponseDto
         HotelResponseDto hotelResponse = new HotelResponseDto(
@@ -93,6 +94,7 @@ public class BookingServiceImpl implements BookingService {
                 hotel.getLongitude(),
                 null,
                 averageRating,
+                reviewCount,
                 null
         );
 

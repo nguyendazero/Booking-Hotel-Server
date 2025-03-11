@@ -21,6 +21,5 @@ public class HotelResponseDto {
     private String longitude;
     private ImageResponseDto images;
     private Double rating;
-    private Long reviews;
     private List<DateRangeResponseDto> bookedDates;
 }

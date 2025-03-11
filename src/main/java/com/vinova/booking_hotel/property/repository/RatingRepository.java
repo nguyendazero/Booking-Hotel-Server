@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.property.repository;
 
+import com.vinova.booking_hotel.property.model.Hotel;
 import com.vinova.booking_hotel.property.model.Rating;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,4 +13,7 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     @Query("SELECT AVG(r.stars) FROM Rating r WHERE r.hotel.id = :hotelId")
     Double findAverageRatingByHotelId(@Param("hotelId") Long hotelId);
+
+    Long countByHotel(Hotel hotel);
+    
 }
