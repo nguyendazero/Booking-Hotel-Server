@@ -19,8 +19,8 @@ public class HotelResponseDto {
     private String streetAddress;
     private String latitude;
     private String longitude;
-    private List<ImageResponseDto> images;
     private Double rating;
     private Long reviews;
+    private List<ImageResponseDto> images;
     private List<DateRangeResponseDto> bookedDates;
 }

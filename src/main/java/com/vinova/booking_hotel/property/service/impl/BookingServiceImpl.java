@@ -92,9 +92,9 @@ public class BookingServiceImpl implements BookingService {
                 hotel.getStreetAddress(),
                 hotel.getLatitude(),
                 hotel.getLongitude(),
-                null,
                 averageRating,
                 reviewCount,
+                null,
                 null
         );
 

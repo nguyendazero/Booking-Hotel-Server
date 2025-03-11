@@ -129,9 +129,9 @@ public class HotelServiceImpl implements HotelService {
                         hotel.getStreetAddress(),
                         hotel.getLatitude(),
                         hotel.getLongitude(),
-                        null,
                         averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                         reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
+                        null,
                         null
                 )).toList();
 
@@ -179,9 +179,9 @@ public class HotelServiceImpl implements HotelService {
                 hotel.getStreetAddress(),
                 hotel.getLatitude(),
                 hotel.getLongitude(),
-                imageResponses,
                 averageRating != null ? averageRating : 0.0,
                 reviewCount,
+                imageResponses,
                 bookedDates
         );
 
@@ -222,8 +222,8 @@ public class HotelServiceImpl implements HotelService {
                 savedHotel.getLatitude(),
                 savedHotel.getLongitude(),
                 null,
-                null,
                 0L,
+                null,
                 null
         );
         
