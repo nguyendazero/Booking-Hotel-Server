@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Validated
@@ -30,12 +31,14 @@ public class HotelController {
                                             @RequestParam(required = false) BigDecimal minPrice,
                                             @RequestParam(required = false) BigDecimal maxPrice,
                                             @RequestParam(required = false) List<String> amenityNames,
+                                            @RequestParam(required = false) ZonedDateTime startDate,
+                                            @RequestParam(required = false) ZonedDateTime endDate,
                                             @RequestParam(defaultValue = "0") int pageIndex,
                                             @RequestParam(defaultValue = "5") int pageSize,
                                             @RequestParam(defaultValue = "id") String sortBy,
                                             @RequestParam(defaultValue = "asc") String sortOrder) {
 
-        APICustomize<List<HotelResponseDto>> response = hotelService.hotels(accountId, districtId, name, minPrice, maxPrice, amenityNames, pageIndex, pageSize, sortBy, sortOrder);
+        APICustomize<List<HotelResponseDto>> response = hotelService.hotels(accountId, districtId, name, minPrice, maxPrice, amenityNames, startDate, endDate, pageIndex, pageSize, sortBy, sortOrder);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

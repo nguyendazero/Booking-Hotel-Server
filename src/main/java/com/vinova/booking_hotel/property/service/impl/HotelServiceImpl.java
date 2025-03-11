@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,8 +50,11 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name,
-                                                       BigDecimal minPrice, BigDecimal maxPrice, List<String> amenityNames,
+                                                       BigDecimal minPrice, BigDecimal maxPrice,
+                                                       List<String> amenityNames,
+                                                       ZonedDateTime startDate, ZonedDateTime endDate,
                                                        int pageIndex, int pageSize, String sortBy, String sortOrder) {
+
         // Kiểm tra hợp lệ cho pageIndex và pageSize
         if (pageIndex < 0 || pageSize <= 0) {
             throw new InvalidPageOrSizeException();
@@ -63,7 +67,8 @@ public class HotelServiceImpl implements HotelService {
                 .and(HotelSpecification.hasName(name))
                 .and(HotelSpecification.hasMinPrice(minPrice))
                 .and(HotelSpecification.hasMaxPrice(maxPrice))
-                .and(HotelSpecification.hasAmenityNames(amenityNames));
+                .and(HotelSpecification.hasAmenityNames(amenityNames))
+                .and(HotelSpecification.isAvailableBetween(startDate, endDate));
 
         // Sử dụng Pageable từ Spring Data
         Pageable pageable = PageRequest.of(pageIndex, pageSize);
