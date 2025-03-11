@@ -1,6 +1,6 @@
-package com.vinova.booking_hotel.authentication.validation.validator;
+package com.vinova.booking_hotel.authentication.dto.validation.validator;
 
-import com.vinova.booking_hotel.authentication.validation.annotation.ValidPhoneNumber;
+import com.vinova.booking_hotel.authentication.dto.validation.annotation.ValidPhoneNumber;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 

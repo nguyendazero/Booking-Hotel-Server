@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.authentication.specification;
+package com.vinova.booking_hotel.authentication.repository.specification;
 
 import com.vinova.booking_hotel.authentication.model.Account;
 import org.springframework.data.jpa.domain.Specification;

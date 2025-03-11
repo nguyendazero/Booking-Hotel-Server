@@ -1,4 +1,4 @@
-package com.vinova.booking_hotel.property.specification;
+package com.vinova.booking_hotel.property.repository.specification;
 
 import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.model.HotelAmenity;

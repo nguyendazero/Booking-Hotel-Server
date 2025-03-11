@@ -1,6 +1,6 @@
-package com.vinova.booking_hotel.authentication.validation.annotation;
+package com.vinova.booking_hotel.authentication.dto.validation.annotation;
 
-import com.vinova.booking_hotel.authentication.validation.validator.PasswordValidator;
+import com.vinova.booking_hotel.authentication.dto.validation.validator.PasswordValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 

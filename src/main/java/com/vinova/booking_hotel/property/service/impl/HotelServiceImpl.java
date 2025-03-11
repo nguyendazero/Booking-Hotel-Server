@@ -21,7 +21,7 @@ import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddHotelRequestDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
 import com.vinova.booking_hotel.property.service.HotelService;
-import com.vinova.booking_hotel.property.specification.HotelSpecification;
+import com.vinova.booking_hotel.property.repository.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

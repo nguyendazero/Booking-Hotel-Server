@@ -12,7 +12,7 @@ import com.vinova.booking_hotel.authentication.repository.RoleRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.AccountService;
 import com.vinova.booking_hotel.authentication.service.EmailService;
-import com.vinova.booking_hotel.authentication.specification.AccountSpecification;
+import com.vinova.booking_hotel.authentication.repository.specification.AccountSpecification;
 import com.vinova.booking_hotel.common.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

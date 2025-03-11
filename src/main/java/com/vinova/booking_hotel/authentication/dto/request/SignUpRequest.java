@@ -1,7 +1,7 @@
 package com.vinova.booking_hotel.authentication.dto.request;
 
-import com.vinova.booking_hotel.authentication.validation.annotation.ValidFullName;
-import com.vinova.booking_hotel.authentication.validation.annotation.ValidPassword;
+import com.vinova.booking_hotel.authentication.dto.validation.annotation.ValidFullName;
+import com.vinova.booking_hotel.authentication.dto.validation.annotation.ValidPassword;
 import lombok.*;
 
 @Data
