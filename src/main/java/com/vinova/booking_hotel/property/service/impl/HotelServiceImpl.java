@@ -160,6 +160,14 @@ public class HotelServiceImpl implements HotelService {
 
         // Lấy số lượng đánh giá của khách sạn
         Long reviewCount = ratingRepository.countByHotel(hotel);
+
+        //images cua hotel
+        List<Image> images = imageRepository.findAllByHotel(hotel);
+        List<ImageResponseDto> imageResponses = images.stream()
+                .map(image -> new ImageResponseDto(
+                        image.getId(),
+                        image.getImageUrl()))
+                .toList();
         
         // Chuyển đổi khách sạn thành HotelResponseDto
         HotelResponseDto response = new HotelResponseDto(
@@ -171,7 +179,7 @@ public class HotelServiceImpl implements HotelService {
                 hotel.getStreetAddress(),
                 hotel.getLatitude(),
                 hotel.getLongitude(),
-                null,
+                imageResponses,
                 averageRating != null ? averageRating : 0.0,
                 reviewCount,
                 bookedDates
