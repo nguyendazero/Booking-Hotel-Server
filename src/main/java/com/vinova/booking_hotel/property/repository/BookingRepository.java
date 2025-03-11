@@ -1,6 +1,8 @@
 package com.vinova.booking_hotel.property.repository;
 
+import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.property.model.Booking;
+import com.vinova.booking_hotel.property.model.Hotel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,5 +23,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByCreateDt(@Param("date") LocalDateTime date);
 
     List<Booking> findByHotelId(Long hotelId);
-    
+
+    boolean existsByHotelAndAccount(Hotel hotel, Account account);
 }

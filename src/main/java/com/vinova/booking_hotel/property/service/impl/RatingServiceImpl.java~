@@ -83,16 +83,26 @@ public class RatingServiceImpl implements RatingService {
     public APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, Long hotelId, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        System.out.println("Account ID từ token: " + accountId);
 
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> {
+                    System.out.println("Không tìm thấy tài khoản với ID: " + accountId);
+                    return new ResourceNotFoundException();
+                });
 
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> {
+                    System.out.println("Không tìm thấy khách sạn với ID: " + hotelId);
+                    return new ResourceNotFoundException();
+                });
+
+        System.out.println("Tài khoản: " + account.getUsername() + ", Khách sạn: " + hotel.getName());
 
         // Kiểm tra xem người dùng đã đặt phòng tại khách sạn này chưa
         boolean hasBooked = bookingRepository.existsByHotelAndAccount(hotel, account);
+        System.out.println("Người dùng đã đặt phòng tại khách sạn này: " + hasBooked);
 
         if (!hasBooked) {
             throw new RuntimeException("You must book a room at this hotel before leaving a rating");
