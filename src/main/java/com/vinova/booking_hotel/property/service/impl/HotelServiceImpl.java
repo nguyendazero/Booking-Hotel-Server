@@ -150,8 +150,12 @@ public class HotelServiceImpl implements HotelService {
         // Lấy danh sách đặt phòng của khách sạn
         List<Booking> bookings = bookingRepository.findByHotelId(id);
 
-        // Chuyển đổi các đặt phòng thành DateRangeResponseDto
+        // Lấy thời điểm hiện tại
+        ZonedDateTime now = ZonedDateTime.now();
+
+        // Chuyển đổi các đặt phòng thành DateRangeResponseDto chỉ cho những booking chưa diễn ra
         List<DateRangeResponseDto> bookedDates = bookings.stream()
+                .filter(booking -> booking.getStartDate().isAfter(now)) // Lọc các booking có ngày bắt đầu trong tương lai
                 .map(booking -> new DateRangeResponseDto(
                         booking.getStartDate(),
                         booking.getEndDate()
