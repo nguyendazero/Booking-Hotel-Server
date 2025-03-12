@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -225,5 +226,238 @@ public class BookingServiceImpl implements BookingService {
 
         return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
     }
+
+    @Override
+    public APICustomize<List<BookingResponseDto>> getBookingsByToken(String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+        
+        List<Booking> bookings = bookingRepository.findByAccount(account);
+        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                booking.getHotel().getId(),
+                                booking.getHotel().getName(),
+                                booking.getHotel().getDescription(),
+                                booking.getHotel().getPricePerDay(),
+                                booking.getHotel().getHighLightImageUrl(),
+                                booking.getHotel().getStreetAddress(),
+                                booking.getHotel().getLatitude(),
+                                booking.getHotel().getLongitude(),
+                                null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                account.getId(),
+                                account.getFullName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                account.getAvatar(),
+                                account.getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
+    }
+
+    @Override
+    public APICustomize<List<BookingResponseDto>> getReservations(String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Lấy danh sách booking của tài khoản
+        List<Booking> bookings = bookingRepository.findByAccount(account);
+
+        // Lọc những booking nằm trong tương lai
+        ZonedDateTime now = ZonedDateTime.now();
+        List<BookingResponseDto> futureBookings = bookings.stream()
+                .filter(booking -> booking.getStartDate().isAfter(now))
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                booking.getHotel().getId(),
+                                booking.getHotel().getName(),
+                                booking.getHotel().getDescription(),
+                                booking.getHotel().getPricePerDay(),
+                                booking.getHotel().getHighLightImageUrl(),
+                                booking.getHotel().getStreetAddress(),
+                                booking.getHotel().getLatitude(),
+                                booking.getHotel().getLongitude(),
+                                null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                account.getId(),
+                                account.getFullName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                account.getAvatar(),
+                                account.getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), futureBookings);
+    }
+
+    @Override
+    public APICustomize<List<BookingResponseDto>> getBookingsByHotelId(Long hotelId, String token) {
+        // Lấy accountId từ token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Tìm khách sạn theo hotelId
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
+        if (!hotel.getAccount().getId().equals(accountId)) {
+            throw new RuntimeException("You do not have permission to view bookings for this hotel.");
+        }
+
+        // Lấy danh sách booking cho khách sạn
+        List<Booking> bookings = bookingRepository.findByHotel(hotel);
+
+        // Chuyển đổi sang BookingResponseDto
+        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                hotel.getId(),
+                                hotel.getName(),
+                                hotel.getDescription(),
+                                hotel.getPricePerDay(),
+                                hotel.getHighLightImageUrl(),
+                                hotel.getStreetAddress(),
+                                hotel.getLatitude(),
+                                hotel.getLongitude(),
+                                null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                account.getId(),
+                                account.getFullName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                account.getAvatar(),
+                                account.getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
+    }
+
+    @Override
+    public APICustomize<List<BookingResponseDto>> getReservationsByHotelId(Long hotelId, String token) {
+        // Lấy accountId từ token
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Tìm khách sạn theo hotelId
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
+        if (!hotel.getAccount().getId().equals(accountId)) {
+            throw new RuntimeException("You do not have permission to view reservations for this hotel.");
+        }
+
+        // Lấy danh sách booking cho khách sạn
+        List<Booking> bookings = bookingRepository.findByHotel(hotel);
+
+        // Lọc booking nằm trong tương lai
+        ZonedDateTime now = ZonedDateTime.now();
+        List<BookingResponseDto> futureReservations = bookings.stream()
+                .filter(booking -> booking.getStartDate().isAfter(now)) // Chỉ lấy booking có ngày bắt đầu lớn hơn thời gian hiện tại
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                hotel.getId(),
+                                hotel.getName(),
+                                hotel.getDescription(),
+                                hotel.getPricePerDay(),
+                                hotel.getHighLightImageUrl(),
+                                hotel.getStreetAddress(),
+                                hotel.getLatitude(),
+                                hotel.getLongitude(),
+                                null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                account.getId(),
+                                account.getFullName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                account.getAvatar(),
+                                account.getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), futureReservations);
+    }
+
+    @Override
+    public APICustomize<List<BookingResponseDto>> getAllBooking() {
+        // Lấy danh sách tất cả booking
+        List<Booking> bookings = bookingRepository.findAll();
+
+        // Chuyển đổi danh sách booking sang BookingResponseDto
+        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                booking.getHotel().getId(),
+                                booking.getHotel().getName(),
+                                booking.getHotel().getDescription(),
+                                booking.getHotel().getPricePerDay(),
+                                booking.getHotel().getHighLightImageUrl(),
+                                booking.getHotel().getStreetAddress(),
+                                booking.getHotel().getLatitude(),
+                                booking.getHotel().getLongitude(),
+                                null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                booking.getAccount().getId(),
+                                booking.getAccount().getFullName(),
+                                booking.getAccount().getUsername(),
+                                booking.getAccount().getEmail(),
+                                booking.getAccount().getAvatar(),
+                                booking.getAccount().getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
+    }
+
 
 }
