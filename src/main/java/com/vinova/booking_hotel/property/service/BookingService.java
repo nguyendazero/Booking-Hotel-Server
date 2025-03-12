@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface BookingService {
 
-    APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, Long hotelId, String token);
+    APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, String token);
 
     APICustomize<Void> cancelBooking(Long bookingId, String token);
 

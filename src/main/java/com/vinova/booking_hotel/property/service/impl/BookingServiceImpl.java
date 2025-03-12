@@ -41,14 +41,14 @@ public class BookingServiceImpl implements BookingService {
     private final StripeService stripeService;
 
     @Override
-    public APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, Long hotelId, String token) {
+    public APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(hotelId)
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Kiểm tra thời gian đặt phòng
@@ -63,7 +63,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // Kiểm tra xem có bất kỳ booking nào đã tồn tại cho khoảng thời gian này không
-        List<Booking> existingBookings = bookingRepository.findByHotelIdAndDateRange(hotelId, requestDto.getStartDate(), requestDto.getEndDate());
+        List<Booking> existingBookings = bookingRepository.findByHotelIdAndDateRange(requestDto.getHotelId(), requestDto.getStartDate(), requestDto.getEndDate());
 
         // Kiểm tra nếu có booking đang hoạt động (không phải CANCELLED)
         boolean hasActiveBooking = existingBookings.stream()

@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddBookingRequestDto {
+    private Long hotelId;
     private ZonedDateTime startDate;
     private ZonedDateTime endDate;
 }

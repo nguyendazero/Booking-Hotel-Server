@@ -22,16 +22,15 @@ public class BookingController {
 
     @PostMapping("/user/booking")
     public ResponseEntity<APICustomize<StripeResponseDto>> bookHotel(@RequestBody AddBookingRequestDto requestDto,
-                                                                     @RequestParam Long hotelId,
                                                                      @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<StripeResponseDto> response = bookingService.createBooking(requestDto, hotelId, accessToken);
+        APICustomize<StripeResponseDto> response = bookingService.createBooking(requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
     @PatchMapping("/user/booking/{bookingId}/cancel")
     public ResponseEntity<APICustomize<Void>> cancelBooking(@PathVariable Long bookingId,
-                                                                          @RequestHeader("Authorization") String token) {
+                                                            @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         APICustomize<Void> response = bookingService.cancelBooking(bookingId, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
