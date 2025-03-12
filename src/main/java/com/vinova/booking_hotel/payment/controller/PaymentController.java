@@ -45,9 +45,9 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/public/payment/fail")
+    @GetMapping("/public/payment/cancel")
     public ResponseEntity<String> fail() {
-        return ResponseEntity.ok("fail");
+        return ResponseEntity.ok("Payment canceled! Please try again.");
     }
     
 }
