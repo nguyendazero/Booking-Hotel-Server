@@ -95,7 +95,7 @@ public class BookingServiceImpl implements BookingService {
         );
 
         // Gọi dịch vụ thanh toán
-        StripeResponseDto stripe = stripeService.checkoutBooking(paymentRequestDto);
+        StripeResponseDto stripe = stripeService.checkoutBooking(paymentRequestDto, savedBooking.getId());
 
         // Tạo đối tượng phản hồi StripeResponseDto
         StripeResponseDto response = new StripeResponseDto();
