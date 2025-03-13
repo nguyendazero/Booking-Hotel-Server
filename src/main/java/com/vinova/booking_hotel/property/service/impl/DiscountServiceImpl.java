@@ -10,8 +10,6 @@ import com.vinova.booking_hotel.property.repository.DiscountRepository;
 import com.vinova.booking_hotel.property.service.DiscountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service

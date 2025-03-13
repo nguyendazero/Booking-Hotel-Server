@@ -1,25 +1,22 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
-import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
+import com.vinova.booking_hotel.authentication.dto.response.*;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
-import com.vinova.booking_hotel.common.enums.ApiError;
-import com.vinova.booking_hotel.common.enums.BookingStatus;
+import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
+import com.vinova.booking_hotel.common.enums.*;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddRatingRequestDto;
-import com.vinova.booking_hotel.property.dto.response.RatingResponseDto;
-import com.vinova.booking_hotel.property.model.Booking;
-import com.vinova.booking_hotel.property.model.Hotel;
-import com.vinova.booking_hotel.property.model.Rating;
-import com.vinova.booking_hotel.property.repository.BookingRepository;
-import com.vinova.booking_hotel.property.repository.HotelRepository;
-import com.vinova.booking_hotel.property.repository.RatingRepository;
+import com.vinova.booking_hotel.property.dto.response.*;
+import com.vinova.booking_hotel.property.model.*;
+import com.vinova.booking_hotel.property.repository.*;
 import com.vinova.booking_hotel.property.service.RatingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,28 +27,41 @@ public class RatingServiceImpl implements RatingService {
     private final RatingRepository ratingRepository;
     private final AccountRepository accountRepository;
     private final JwtUtils jwtUtils;
+    private final CloudinaryService cloudinaryService;
     private final BookingRepository bookingRepository;
     private final HotelRepository hotelRepository;
+    private final ImageRepository imageRepository;
 
     @Override
     public APICustomize<List<RatingResponseDto>> ratingsByHotelId(Long hotelId) {
         List<Rating> ratings = ratingRepository.findByHotelId(hotelId);
         List<RatingResponseDto> responseDtos = ratings.stream()
-                .map(rating -> new RatingResponseDto(
-                        rating.getId(),
-                        rating.getStars(),
-                        rating.getContent(),
-                        rating.getCreateDt(),
-                        new AccountResponseDto(
-                                rating.getAccount().getId(),
-                                rating.getAccount().getFullName(),
-                                rating.getAccount().getUsername(),
-                                rating.getAccount().getEmail(),
-                                rating.getAccount().getAvatar(),
-                                rating.getAccount().getPhone(),
-                                null
-                        )
-                ))
+                .map(rating -> {
+                    List<Image> images = imageRepository.findByEntityIdAndEntityType(rating.getId(), EntityType.REVIEW);
+                    List<ImageResponseDto> imageDtos = images.stream()
+                            .map(image -> new ImageResponseDto(
+                                    image.getId(),
+                                    image.getImageUrl()
+                            ))
+                            .collect(Collectors.toList());
+
+                    return new RatingResponseDto(
+                            rating.getId(),
+                            rating.getStars(),
+                            rating.getContent(),
+                            rating.getCreateDt(),
+                            imageDtos,
+                            new AccountResponseDto(
+                                    rating.getAccount().getId(),
+                                    rating.getAccount().getFullName(),
+                                    rating.getAccount().getUsername(),
+                                    rating.getAccount().getEmail(),
+                                    rating.getAccount().getAvatar(),
+                                    rating.getAccount().getPhone(),
+                                    null
+                            )
+                    );
+                })
                 .collect(Collectors.toList());
 
         // Tạo và trả về APICustomize chứa danh sách RatingResponseDto
@@ -61,11 +71,22 @@ public class RatingServiceImpl implements RatingService {
     @Override
     public APICustomize<RatingResponseDto> rating(Long id) {
         Rating rating = ratingRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        
+        // Lấy danh sách hình ảnh liên quan đến đánh giá từ repository
+        List<Image> images = imageRepository.findByEntityIdAndEntityType(rating.getId(), EntityType.REVIEW);
+        List<ImageResponseDto> imageDtos = images.stream()
+                .map(image -> new ImageResponseDto(
+                        image.getId(),
+                        image.getImageUrl()
+                ))
+                .collect(Collectors.toList());
+
         RatingResponseDto responseDto = new RatingResponseDto(
                 rating.getId(),
                 rating.getStars(),
                 rating.getContent(),
                 rating.getCreateDt(),
+                imageDtos,
                 new AccountResponseDto(
                         rating.getAccount().getId(),
                         rating.getAccount().getFullName(),
@@ -112,12 +133,34 @@ public class RatingServiceImpl implements RatingService {
         // Lưu đánh giá vào cơ sở dữ liệu
         Rating savedRating = ratingRepository.save(rating);
 
+        // Lưu hình ảnh vào Cloudinary và tạo danh sách hình ảnh
+        List<ImageResponseDto> imageDtos = new ArrayList<>();
+        if (requestDto.getImages() != null && !requestDto.getImages().isEmpty()) {
+            for (MultipartFile imageFile : requestDto.getImages()) {
+                // Tải hình ảnh lên Cloudinary
+                String imageUrl = cloudinaryService.uploadImage(imageFile);
+
+                // Tạo đối tượng Image mới
+                Image image = new Image();
+                image.setEntityId(savedRating.getId());
+                image.setEntityType(EntityType.REVIEW);
+                image.setImageUrl(imageUrl);
+
+                // Lưu hình ảnh vào cơ sở dữ liệu
+                imageRepository.save(image);
+
+                // Thêm vào danh sách hình ảnh DTO
+                imageDtos.add(new ImageResponseDto(image.getId(), imageUrl));
+            }
+        }
+
         // Chuyển đổi sang RatingResponseDto
         RatingResponseDto responseDto = new RatingResponseDto(
                 savedRating.getId(),
                 savedRating.getStars(),
                 savedRating.getContent(),
                 savedRating.getCreateDt(),
+                imageDtos,
                 new AccountResponseDto(
                         account.getId(),
                         account.getFullName(),

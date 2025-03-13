@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +16,6 @@ public class RatingResponseDto {
     private Integer stars;
     private String content;
     private ZonedDateTime createDt;
+    private List<ImageResponseDto> images;
     private AccountResponseDto account;
 }

@@ -1,14 +1,11 @@
 package com.vinova.booking_hotel.property.model;
 
-import com.vinova.booking_hotel.authentication.model.AccountRole;
+import com.vinova.booking_hotel.common.enums.EntityType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -22,12 +19,15 @@ public class Image {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "entity_id", nullable = false)
+    private Long entityId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entity_type", nullable = false)
+    private EntityType entityType;
+
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
-
-    @ManyToOne
-    @JoinColumn(name = "hotel_id", nullable = false)
-    private Hotel hotel;
 
     @Column(name = "create_dt")
     @CreationTimestamp

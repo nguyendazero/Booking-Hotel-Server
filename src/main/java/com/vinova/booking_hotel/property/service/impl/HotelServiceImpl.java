@@ -6,19 +6,17 @@ import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
 import com.vinova.booking_hotel.common.enums.ApiError;
+import com.vinova.booking_hotel.common.enums.EntityType;
 import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
-import com.vinova.booking_hotel.property.dto.response.DateRangeResponseDto;
-import com.vinova.booking_hotel.property.dto.response.ImageResponseDto;
+import com.vinova.booking_hotel.property.dto.response.*;
 import com.vinova.booking_hotel.property.model.*;
 import com.vinova.booking_hotel.property.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Sort;
-import com.vinova.booking_hotel.common.exception.InvalidPageOrSizeException;
-import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
+import com.vinova.booking_hotel.common.exception.*;
 import com.vinova.booking_hotel.property.dto.request.AddHotelRequestDto;
 import com.vinova.booking_hotel.property.dto.response.HotelResponseDto;
 import com.vinova.booking_hotel.property.service.HotelService;
@@ -165,14 +163,14 @@ public class HotelServiceImpl implements HotelService {
         // Lấy số lượng đánh giá của khách sạn
         Long reviewCount = ratingRepository.countByHotel(hotel);
 
-        //images cua hotel
-        List<Image> images = imageRepository.findAllByHotel(hotel);
+        // Lấy hình ảnh của khách sạn thông qua entityId và entityType
+        List<Image> images = imageRepository.findByEntityIdAndEntityType(id, EntityType.HOTEL);
         List<ImageResponseDto> imageResponses = images.stream()
                 .map(image -> new ImageResponseDto(
                         image.getId(),
                         image.getImageUrl()))
                 .toList();
-        
+
         // Chuyển đổi khách sạn thành HotelResponseDto
         HotelResponseDto response = new HotelResponseDto(
                 hotel.getId(),
@@ -298,15 +296,20 @@ public class HotelServiceImpl implements HotelService {
 
         Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
 
+        // Kiểm tra quyền truy cập
         if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
             List<ImageResponseDto> imageResponses = new ArrayList<>();
 
             for (MultipartFile file : requestDto.getImageUrls()) {
                 if (file != null && !file.isEmpty()) {
+                    // Tải hình ảnh lên Cloudinary
                     String imageUrl = cloudinaryService.uploadImage(file);
+
+                    // Tạo đối tượng Image mới
                     Image image = new Image();
                     image.setImageUrl(imageUrl);
-                    image.setHotel(hotel);
+                    image.setEntityId(hotelId); 
+                    image.setEntityType(EntityType.HOTEL);
 
                     // Lưu hình ảnh vào cơ sở dữ liệu
                     imageRepository.save(image);
@@ -339,14 +342,9 @@ public class HotelServiceImpl implements HotelService {
         List<Image> images = imageRepository.findAllById(imageIds);
 
         // Kiểm tra xem tất cả hình ảnh có thuộc về khách sạn không
-        for (Long imageId : imageIds) {
-            Image image = images.stream()
-                    .filter(img -> img.getId().equals(imageId))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Image with ID " + imageId + " not found"));
-
-            if (!Objects.equals(image.getHotel().getId(), hotelId)) {
-                throw new RuntimeException("Image with ID " + imageId + " does not belong to this hotel");
+        for (Image image : images) {
+            if (!Objects.equals(image.getEntityId(), hotelId) || !image.getEntityType().equals(EntityType.HOTEL)) {
+                throw new RuntimeException("Image with ID " + image.getId() + " does not belong to this hotel");
             }
         }
 
