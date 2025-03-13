@@ -67,8 +67,8 @@ public class AccountController {
     }
 
     @PostMapping("/public/forgot-password")
-    public ResponseEntity<APICustomize<String>> forgotPassword(@RequestParam String emailOrUsername) {
-        APICustomize<String> response = accountService.sendVerificationForPasswordReset(emailOrUsername);
+    public ResponseEntity<APICustomize<String>> forgotPassword(@RequestBody ForgotPasswordRequest requestDto) {
+        APICustomize<String> response = accountService.sendVerificationForPasswordReset(requestDto.getEmailOrUsername());
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

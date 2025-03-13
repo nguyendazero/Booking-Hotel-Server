@@ -32,11 +32,10 @@ public class RatingController {
     }
     
     @PostMapping("/user/hotel/rating")
-    public ResponseEntity<APICustomize<RatingResponseDto>> create(@RequestBody AddRatingRequestDto requestDto, 
-                                                                  @RequestParam Long hotelId, 
+    public ResponseEntity<APICustomize<RatingResponseDto>> create(@RequestBody AddRatingRequestDto requestDto,
                                                                   @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<RatingResponseDto> response = ratingService.create(requestDto, hotelId, accessToken);
+        APICustomize<RatingResponseDto> response = ratingService.create(requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
     

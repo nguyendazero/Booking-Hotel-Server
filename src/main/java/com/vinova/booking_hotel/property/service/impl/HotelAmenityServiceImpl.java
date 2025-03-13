@@ -6,6 +6,8 @@ import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
+import com.vinova.booking_hotel.property.dto.request.AddAmenityToHotelRequestDto;
+import com.vinova.booking_hotel.property.dto.request.DeleteAmenityFromHotelRequestDto;
 import com.vinova.booking_hotel.property.model.Amenity;
 import com.vinova.booking_hotel.property.model.Hotel;
 import com.vinova.booking_hotel.property.model.HotelAmenity;
@@ -28,9 +30,9 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
     private final AccountRepository accountRepository;
 
     @Override
-    public APICustomize<String> addAmenityToHotel(String nameAmenity, Long hotelId, String token) {
+    public APICustomize<String> addAmenityToHotel(AddAmenityToHotelRequestDto requestDto, String token) {
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId()).orElseThrow(ResourceNotFoundException::new);
 
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
@@ -43,7 +45,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
         }
 
         // Tìm tiện nghi theo tên
-        Amenity existingAmenity = amenityRepository.findByName(nameAmenity);
+        Amenity existingAmenity = amenityRepository.findByName(requestDto.getNameAmenity());
         if (existingAmenity != null) {
             // Nếu tiện nghi đã tồn tại, tạo liên kết giữa khách sạn và tiện nghi
             HotelAmenity hotelAmenity = new HotelAmenity();
@@ -55,7 +57,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
 
         // Nếu tiện nghi chưa tồn tại, tạo mới
         Amenity amenity = new Amenity();
-        amenity.setName(nameAmenity);
+        amenity.setName(requestDto.getNameAmenity());
         Amenity amenitySaved = amenityRepository.save(amenity);
 
         // Tạo liên kết mới giữa khách sạn và tiện nghi mới
@@ -68,8 +70,8 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
     }
 
     @Override
-    public APICustomize<String> removeAmenityFromHotel(Long amenityId, Long hotelId, String token) {
-        Hotel hotel = hotelRepository.findById(hotelId)
+    public APICustomize<String> removeAmenityFromHotel(DeleteAmenityFromHotelRequestDto requestDto, String token) {
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
                 .orElseThrow(ResourceNotFoundException::new);
 
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
@@ -80,7 +82,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
             throw new RuntimeException("You do not have permission to remove amenities from this hotel");
         }
         
-        Amenity amenity = amenityRepository.findById(amenityId)
+        Amenity amenity = amenityRepository.findById(requestDto.getAmenityId())
                 .orElseThrow(ResourceNotFoundException::new);
         // Tìm kiếm Amenity trong hotelAmenity
         HotelAmenity hotelAmenity = hotelAmenityRepository.findByHotelAndAmenity(hotel, amenity)

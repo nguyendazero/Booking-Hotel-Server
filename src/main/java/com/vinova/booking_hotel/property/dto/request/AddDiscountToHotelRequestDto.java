@@ -11,6 +11,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddDiscountToHotelRequestDto {
+    private Long hotelId;
     private BigDecimal rate;
     private ZonedDateTime startDate;
     private ZonedDateTime endDate;

@@ -28,7 +28,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
     private final DiscountRepository discountRepository;
 
     @Override
-    public APICustomize<String> addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, String token) {
+    public APICustomize<String> addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, Long hotelId, String token) {
         // Kiểm tra tính hợp lệ của startDate và endDate
         if (requestDto.getStartDate() == null || requestDto.getEndDate() == null) {
             throw new RuntimeException("Start date and end date must not be null");
@@ -40,7 +40,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         }
 
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(requestDto.getHotelId()).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
 
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
@@ -53,7 +53,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         }
 
         // Kiểm tra xem có bất kỳ discount nào đã tồn tại cho khoảng thời gian này không
-        List<HotelDiscount> existingDiscounts = hotelDiscountRepository.findByHotelIdAndDateRange(requestDto.getHotelId(), requestDto.getStartDate(), requestDto.getEndDate());
+        List<HotelDiscount> existingDiscounts = hotelDiscountRepository.findByHotelIdAndDateRange(hotelId, requestDto.getStartDate(), requestDto.getEndDate());
         if (!existingDiscounts.isEmpty()) {
             throw new RuntimeException("A discount already exists for this date range");
         }

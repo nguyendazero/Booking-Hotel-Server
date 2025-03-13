@@ -7,8 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddRatingRequestDto {
+public class DeleteAmenityFromHotelRequestDto {
     private Long hotelId;
-    private Integer stars;
-    private String content;
+    private Long amenityId;
 }

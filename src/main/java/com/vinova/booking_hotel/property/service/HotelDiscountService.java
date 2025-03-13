@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public interface HotelDiscountService {
     
-    APICustomize<String> addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, Long hotelId, String token);
+    APICustomize<String> addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, String token);
 
     APICustomize<String> deleteHotelDiscount(Long hotelDiscountId, String token);
 }

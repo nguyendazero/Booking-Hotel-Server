@@ -82,7 +82,7 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, Long hotelId, String token) {
+    public APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
@@ -90,7 +90,7 @@ public class RatingServiceImpl implements RatingService {
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(hotelId)
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Kiểm tra xem người dùng đã đặt phòng tại khách sạn này chưa
@@ -130,7 +130,7 @@ public class RatingServiceImpl implements RatingService {
         );
 
         // Trả về APICustomize chứa RatingResponseDto
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
+        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), responseDto);
     }
 
     @Override

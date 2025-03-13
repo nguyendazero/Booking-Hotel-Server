@@ -18,10 +18,9 @@ public class HotelDiscountController {
 
     @PostMapping("/owner/hotel-discount")
     public ResponseEntity<APICustomize<String>> addDiscountToHotel(@RequestBody AddDiscountToHotelRequestDto requestDto,
-                                                                   @RequestParam Long hotelId,
                                                                    @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<String> response = hotelDiscountService.addDiscountToHotel(requestDto, hotelId, accessToken);
+        APICustomize<String> response = hotelDiscountService.addDiscountToHotel(requestDto, accessToken);
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 

@@ -12,7 +12,7 @@ public interface RatingService {
     
     APICustomize<RatingResponseDto> rating(Long id);
     
-    APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, String token);
+    APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, Long hotelId, String token);
 
     APICustomize<Void> delete(Long id, String token);
     
