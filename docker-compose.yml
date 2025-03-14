@@ -1,11 +1,11 @@
 networks:
   app-network:
     driver: bridge
-    
+
 volumes:
   postgres-data-booking-hotel:
     driver: local
-    
+
 services:
   postgres:
     image: "postgres:17.4"
@@ -16,6 +16,22 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     volumes:
-      - postgres-data-booking-hotel:/var/lib/postgresql
+      - postgres-data-booking-hotel:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  booking-hotel:
+    image: "nguyenda0702/booking-hotel:s1"
+    container_name: server-booking-hotel
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
