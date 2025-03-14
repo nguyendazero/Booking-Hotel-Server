@@ -32,7 +32,7 @@ public class RatingController {
     }
     
     @PostMapping("/user/hotel/rating")
-    public ResponseEntity<APICustomize<RatingResponseDto>> create(@RequestBody AddRatingRequestDto requestDto,
+    public ResponseEntity<APICustomize<RatingResponseDto>> create(@ModelAttribute AddRatingRequestDto requestDto,
                                                                   @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         APICustomize<RatingResponseDto> response = ratingService.create(requestDto, accessToken);

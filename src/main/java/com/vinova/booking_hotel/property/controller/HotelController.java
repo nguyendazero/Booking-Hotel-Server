@@ -42,6 +42,13 @@ public class HotelController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
+    @GetMapping("/user/hotel/wishlist")
+    public ResponseEntity<APICustomize<List<HotelResponseDto>>> create(@RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        APICustomize<List<HotelResponseDto>> response = hotelService.wishlist(accessToken);
+        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    }
+
     @PostMapping("/owner/hotel")
     public ResponseEntity<APICustomize<HotelResponseDto>> create(
                                             @ModelAttribute AddHotelRequestDto requestDto,

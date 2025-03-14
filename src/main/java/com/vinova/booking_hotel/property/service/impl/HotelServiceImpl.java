@@ -138,6 +138,48 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
+    public APICustomize<List<HotelResponseDto>> wishlist(String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+
+        // Lấy danh sách yêu thích liên kết với tài khoản
+        List<WishList> wishList = account.getWishList();
+
+        // Lấy các ID khách sạn duy nhất từ danh sách yêu thích
+        List<Long> hotelIds = wishList.stream()
+                .map(wish -> wish.getHotel().getId())
+                .collect(Collectors.toList());
+
+        // Lấy danh sách khách sạn dựa trên các ID đã lấy
+        List<Hotel> hotels = hotelRepository.findAllById(hotelIds);
+
+        // Chuẩn bị phản hồi bằng cách chuyển đổi khách sạn thành HotelResponseDto
+        List<HotelResponseDto> hotelResponses = hotels.stream()
+                .map(hotel -> {
+                    Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
+                    Long reviewCount = ratingRepository.countByHotel(hotel);
+                    return new HotelResponseDto(
+                            hotel.getId(),
+                            hotel.getName(),
+                            hotel.getDescription(),
+                            hotel.getPricePerDay(),
+                            hotel.getHighLightImageUrl(),
+                            hotel.getStreetAddress(),
+                            hotel.getLatitude(),
+                            hotel.getLongitude(),
+                            averageRating != null ? averageRating : 0.0,
+                            reviewCount,
+                            null,
+                            null
+                    );
+                })
+                .collect(Collectors.toList());
+
+        // Trả về phản hồi
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), hotelResponses);
+    }
+
+    @Override
     public APICustomize<HotelResponseDto> hotel(Long id) {
         // Tìm khách sạn theo ID
         Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);

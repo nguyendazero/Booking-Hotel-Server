@@ -14,6 +14,8 @@ public interface HotelService {
 
     //Loc theo districtId, AccountId, 
     APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name, BigDecimal minPrice, BigDecimal maxPrice, List<String> amenityNames, ZonedDateTime startDate, ZonedDateTime endDate, int pageIndex, int pageSize, String sortBy, String sortOrder);
+
+    APICustomize<List<HotelResponseDto>> wishlist(String token);
     
     APICustomize<HotelResponseDto> hotel(Long id);
     
