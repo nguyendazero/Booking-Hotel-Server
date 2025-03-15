@@ -4,6 +4,7 @@ import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.service.AccountService;
 import com.vinova.booking_hotel.common.enums.ApiError;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -142,48 +143,41 @@ public class AccountController {
 
     @GetMapping("/public/login/oauth2/code/github")
     public APICustomize<Account> oauth2Callback(@RequestParam("code") String code) {
-        try {
-            // Bước 1: Đổi mã xác thực lấy access token
-            String tokenUri = "https://github.com/login/oauth/access_token";
-            
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        // Bước 1: Đổi mã xác thực lấy access token
+        String tokenUri = "https://github.com/login/oauth/access_token";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-            body.add("client_id", clientId);
-            body.add("client_secret", clientSecret);
-            body.add("code", code);
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("code", code);
 
-            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> response = restTemplate.exchange(tokenUri, HttpMethod.POST, entity, Map.class);
-            String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
+        // Gửi yêu cầu lấy access token
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                tokenUri, HttpMethod.POST, new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+        String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
 
-            // Bước 2: Lấy thông tin người dùng
-            String userInfoUri = "https://api.github.com/user";
-            headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
-            HttpEntity<String> userEntity = new HttpEntity<>(headers);
+        // Bước 2: Lấy thông tin người dùng
+        String userInfoUri = "https://api.github.com/user";
+        headers.setBearerAuth(accessToken);
+        ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
+                userInfoUri, HttpMethod.GET, new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {}
+        );
 
-            // Gửi yêu cầu và nhận phản hồi
-            ResponseEntity<Map> userResponse = restTemplate.exchange(userInfoUri, HttpMethod.GET, userEntity, Map.class);
-            Map<String, Object> user = userResponse.getBody();
+        // Chuyển đổi sang OAuth2User và tạo tài khoản mới
+        OAuth2User oAuth2User = new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                Objects.requireNonNull(userResponse.getBody()),
+                "login"
+        );
 
-            // Chuyển đổi sang OAuth2User để truyền vào dịch vụ
-            assert user != null;
-            OAuth2User oAuth2User = new DefaultOAuth2User(
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
-                    user,
-                    "login"
-            );
-
-            // Bước 3: Tạo tài khoản mới trong hệ thống
-            Account newAccount = accountService.createAccount(oAuth2User);
-            return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccount);
-
-        } catch (Exception e) {
-            return new APICustomize<>(ApiError.INTERNAL_SERVER_ERROR.getCode(), ApiError.INTERNAL_SERVER_ERROR.getMessage(), null);
-        }
+        Account newAccount = accountService.createAccount(oAuth2User);
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccount);
     }
     
 }
