@@ -1,17 +1,31 @@
 package com.vinova.booking_hotel.authentication.controller;
 
+import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.service.AccountService;
+import com.vinova.booking_hotel.common.enums.ApiError;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import com.vinova.booking_hotel.authentication.dto.request.*;
 import com.vinova.booking_hotel.authentication.dto.response.*;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
-import com.vinova.booking_hotel.authentication.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.*;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Validated
 @RestController
@@ -19,8 +33,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AccountController {
 
+    @Value("${spring.security.oauth2.client.registration.github.client-id}")
+    private String clientId;
+
+    @Value("${spring.security.oauth2.client.registration.github.client-secret}")
+    private String clientSecret;
+
     private final AccountService accountService;
     private final JwtUtils jwtUtils;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @GetMapping("/admin/accounts")
     public ResponseEntity<APICustomize<List<AccountResponseDto>>> searchAccounts(
@@ -113,24 +134,56 @@ public class AccountController {
         return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
     }
 
-    @GetMapping("/admin/hello")
-    public ResponseEntity<?> admin(){
-        return ResponseEntity.ok("Hello Admin");
+    @GetMapping("/public/login/github")
+    public APICustomize<String> loginWithGithub() {
+        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=Ov23linKwYC60PzEtp9w&scope=read:user";
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), redirectUrl);
     }
 
-    @GetMapping("/owner/hello")
-    public ResponseEntity<?> owner(){
-        return ResponseEntity.ok("Hello Owner");
-    }
+    @GetMapping("/public/login/oauth2/code/github")
+    public APICustomize<Account> oauth2Callback(@RequestParam("code") String code) {
+        try {
+            // Bước 1: Đổi mã xác thực lấy access token
+            String tokenUri = "https://github.com/login/oauth/access_token";
+            
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-    @GetMapping("/user/hello")
-    public ResponseEntity<?> user(){
-        return ResponseEntity.ok("Hello User");
-    }
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("client_id", clientId);
+            body.add("client_secret", clientSecret);
+            body.add("code", code);
 
-    @GetMapping("/public/hello")
-    public ResponseEntity<?> publicApi(){
-        return ResponseEntity.ok("Hello public");
+            HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(tokenUri, HttpMethod.POST, entity, Map.class);
+            String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
+
+            // Bước 2: Lấy thông tin người dùng
+            String userInfoUri = "https://api.github.com/user";
+            headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> userEntity = new HttpEntity<>(headers);
+
+            // Gửi yêu cầu và nhận phản hồi
+            ResponseEntity<Map> userResponse = restTemplate.exchange(userInfoUri, HttpMethod.GET, userEntity, Map.class);
+            Map<String, Object> user = userResponse.getBody();
+
+            // Chuyển đổi sang OAuth2User để truyền vào dịch vụ
+            assert user != null;
+            OAuth2User oAuth2User = new DefaultOAuth2User(
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                    user,
+                    "login"
+            );
+
+            // Bước 3: Tạo tài khoản mới trong hệ thống
+            Account newAccount = accountService.createAccount(oAuth2User);
+            return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccount);
+
+        } catch (Exception e) {
+            return new APICustomize<>(ApiError.INTERNAL_SERVER_ERROR.getCode(), ApiError.INTERNAL_SERVER_ERROR.getMessage(), null);
+        }
     }
     
 }

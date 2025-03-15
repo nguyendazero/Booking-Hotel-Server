@@ -25,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -497,6 +498,20 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.delete(account);
         
         return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "");
+    }
+
+    @Override
+    public Account createAccount(OAuth2User user) {
+        Account account = new Account();
+
+        // Thiết lập thông tin tài khoản từ OAuth2User
+        account.setEmail(user.getAttribute("email"));
+        account.setFullName(user.getAttribute("name"));
+        account.setAvatar(user.getAttribute("avatar_url"));
+        account.setUsername(user.getAttribute("login"));
+
+        // Lưu tài khoản vào cơ sở dữ liệu
+        return accountRepository.save(account);
     }
 
     @Override
