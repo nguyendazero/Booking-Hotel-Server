@@ -40,6 +40,18 @@ public class AccountController {
     @Value("${spring.security.oauth2.client.registration.github.client-secret}")
     private String clientSecret;
 
+    @Value("${spring.security.oauth2.client.provider.github.authorization-uri}")
+    private String authorizationUri;
+
+    @Value("${spring.security.oauth2.client.registration.github.scope}")
+    private String scope;
+
+    @Value("${spring.security.oauth2.client.provider.github.token-uri}")
+    private String tokenUri;
+
+    @Value("${spring.security.oauth2.client.provider.github.user-info-uri}")
+    private String userInfoUri;
+
     private final AccountService accountService;
     private final JwtUtils jwtUtils;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -137,14 +149,13 @@ public class AccountController {
 
     @GetMapping("/public/login/github")
     public APICustomize<String> loginWithGithub() {
-        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=read:user";
+        String redirectUrl = authorizationUri +"?client_id=" + clientId + "&scope=" + scope;
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), redirectUrl);
     }
 
     @GetMapping("/public/login/oauth2/code/github")
     public APICustomize<AccountResponseDto> oauth2Callback(@RequestParam("code") String code) {
         // Bước 1: Đổi mã xác thực lấy access token
-        String tokenUri = "https://github.com/login/oauth/access_token";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -162,7 +173,6 @@ public class AccountController {
         String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
 
         // Bước 2: Lấy thông tin người dùng
-        String userInfoUri = "https://api.github.com/user";
         headers.setBearerAuth(accessToken);
         ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
                 userInfoUri, HttpMethod.GET, new HttpEntity<>(headers),
