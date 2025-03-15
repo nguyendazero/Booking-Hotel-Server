@@ -42,8 +42,7 @@ public class SecurityConfig {
     }
 
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/api/v1/public/**",
-            "/login/**"
+            "/api/v1/public/**"
     };
 
     private static final String[] ADMIN_ENDPOINTS = {

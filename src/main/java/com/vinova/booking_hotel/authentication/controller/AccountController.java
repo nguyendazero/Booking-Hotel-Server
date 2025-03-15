@@ -142,7 +142,7 @@ public class AccountController {
     }
 
     @GetMapping("/public/login/oauth2/code/github")
-    public APICustomize<Account> oauth2Callback(@RequestParam("code") String code) {
+    public APICustomize<AccountResponseDto> oauth2Callback(@RequestParam("code") String code) {
         // Bước 1: Đổi mã xác thực lấy access token
         String tokenUri = "https://github.com/login/oauth/access_token";
         RestTemplate restTemplate = new RestTemplate();
@@ -177,7 +177,16 @@ public class AccountController {
         );
 
         Account newAccount = accountService.createAccount(oAuth2User);
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccount);
+        
+        AccountResponseDto responseDto = new AccountResponseDto(
+                newAccount.getId(), 
+                newAccount.getFullName(), 
+                newAccount.getUsername(), 
+                newAccount.getEmail(), 
+                newAccount.getAvatar(), 
+                newAccount.getPhone(),
+                newAccount.getAccountRoles().stream().map(accountRole -> accountRole.getRole().getName()).toList());
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
     }
     
 }
