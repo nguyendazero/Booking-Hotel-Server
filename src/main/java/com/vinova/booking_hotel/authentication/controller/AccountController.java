@@ -137,7 +137,7 @@ public class AccountController {
 
     @GetMapping("/public/login/github")
     public APICustomize<String> loginWithGithub() {
-        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=Ov23linKwYC60PzEtp9w&scope=read:user";
+        String redirectUrl = "https://github.com/login/oauth/authorize?client_id=" + clientId + "&scope=read:user";
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), redirectUrl);
     }
 
