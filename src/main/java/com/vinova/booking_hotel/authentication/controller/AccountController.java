@@ -34,11 +34,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AccountController {
 
+    // Github
+
     @Value("${spring.security.oauth2.client.registration.github.client-id}")
-    private String clientId;
+    private String clientIdGithub;
 
     @Value("${spring.security.oauth2.client.registration.github.client-secret}")
-    private String clientSecret;
+    private String clientSecretGithub;
 
     @Value("${spring.security.oauth2.client.provider.github.authorization-uri}")
     private String authorizationUri;
@@ -47,10 +49,28 @@ public class AccountController {
     private String scope;
 
     @Value("${spring.security.oauth2.client.provider.github.token-uri}")
-    private String tokenUri;
+    private String tokenUriGithub;
 
     @Value("${spring.security.oauth2.client.provider.github.user-info-uri}")
-    private String userInfoUri;
+    private String userInfoUriGithub;
+    
+    // Google
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientIdGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String clientSecretGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
+
+    @Value("${spring.security.oauth2.client.registration.google.token-uri}")
+    private String tokenUriGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.user-info-uri}")
+    private String userInfoUriGoogle;
+    
 
     private final AccountService accountService;
     private final JwtUtils jwtUtils;
@@ -149,25 +169,25 @@ public class AccountController {
 
     @GetMapping("/public/login/github")
     public APICustomize<String> loginWithGithub() {
-        String redirectUrl = authorizationUri +"?client_id=" + clientId + "&scope=" + scope;
+        String redirectUrl = authorizationUri +"?client_id=" + clientIdGithub + "&scope=" + scope;
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), redirectUrl);
     }
 
     @GetMapping("/public/login/oauth2/code/github")
-    public APICustomize<AccountResponseDto> oauth2Callback(@RequestParam("code") String code) {
+    public APICustomize<AccountResponseDto> oauth2CallbackGithub(@RequestParam("code") String code) {
         // Bước 1: Đổi mã xác thực lấy access token
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
+        body.add("client_id", clientIdGithub);
+        body.add("client_secret", clientSecretGithub);
         body.add("code", code);
 
         // Gửi yêu cầu lấy access token
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                tokenUri, HttpMethod.POST, new HttpEntity<>(body, headers),
+                tokenUriGithub, HttpMethod.POST, new HttpEntity<>(body, headers),
                 new ParameterizedTypeReference<>() {}
         );
         String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
@@ -175,7 +195,7 @@ public class AccountController {
         // Bước 2: Lấy thông tin người dùng
         headers.setBearerAuth(accessToken);
         ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
-                userInfoUri, HttpMethod.GET, new HttpEntity<>(headers),
+                userInfoUriGithub, HttpMethod.GET, new HttpEntity<>(headers),
                 new ParameterizedTypeReference<>() {}
         );
 
@@ -186,7 +206,7 @@ public class AccountController {
                 "login"
         );
 
-        Account newAccount = accountService.createAccount(oAuth2User);
+        Account newAccount = accountService.createAccountWithGithub(oAuth2User);
         
         AccountResponseDto responseDto = new AccountResponseDto(
                 newAccount.getId(), 
@@ -196,6 +216,66 @@ public class AccountController {
                 newAccount.getAvatar(), 
                 newAccount.getPhone(),
                 newAccount.getAccountRoles().stream().map(accountRole -> accountRole.getRole().getName()).toList());
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
+    }
+
+    @GetMapping("/public/login/google")
+    public APICustomize<String> loginWithGoogle() {
+        String redirectUrl = String.format(
+                "https://accounts.google.com/o/oauth2/auth?client_id=%s&scope=profile email&redirect_uri=%s&response_type=code",
+                clientIdGoogle, redirectUri
+        );
+        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), redirectUrl);
+    }
+
+    @GetMapping("/public/login/oauth2/code/google")
+    public APICustomize<AccountResponseDto> oauth2CallbackGoogle(@RequestParam("code") String code) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        // Bước 1: Đổi mã xác thực lấy access token từ Google
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientIdGoogle);
+        body.add("client_secret", clientSecretGoogle);
+        body.add("code", code);
+        body.add("redirect_uri", redirectUri); // Địa chỉ callback sau khi đăng nhập
+        body.add("grant_type", "authorization_code");
+
+        // Gửi yêu cầu lấy access token
+        ResponseEntity<Map<String, Object>> tokenResponse = restTemplate.exchange(
+                tokenUriGoogle, HttpMethod.POST, new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        String accessToken = (String) Objects.requireNonNull(tokenResponse.getBody()).get("access_token");
+
+        // Bước 2: Lấy thông tin người dùng từ Google
+        headers.setBearerAuth(accessToken);
+        ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
+                userInfoUriGoogle, HttpMethod.GET, new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        // Chuyển đổi sang OAuth2User và tạo tài khoản mới
+        OAuth2User oAuth2User = new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                Objects.requireNonNull(userResponse.getBody()),
+                "sub"  // Google sử dụng "sub" làm định danh
+        );
+
+        Account newAccount = accountService.createAccountWithGoogle(oAuth2User);
+
+        AccountResponseDto responseDto = new AccountResponseDto(
+                newAccount.getId(),
+                newAccount.getFullName(),
+                newAccount.getUsername(),
+                newAccount.getEmail(),
+                newAccount.getAvatar(),
+                newAccount.getPhone(),
+                newAccount.getAccountRoles().stream().map(accountRole -> accountRole.getRole().getName()).toList()
+        );
+
         return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
     }
     

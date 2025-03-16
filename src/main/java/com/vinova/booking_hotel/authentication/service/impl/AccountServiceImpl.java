@@ -501,7 +501,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account createAccount(OAuth2User user) {
+    public Account createAccountWithGithub(OAuth2User user) {
         Account account = new Account();
 
         // Thiết lập thông tin tài khoản từ OAuth2User
@@ -510,6 +510,25 @@ public class AccountServiceImpl implements AccountService {
         account.setAvatar(user.getAttribute("avatar_url"));
         account.setUsername(user.getAttribute("login"));
         
+        AccountRole accountRole = new AccountRole();
+        accountRole.setAccount(account);
+        accountRole.setRole(roleRepository.findByName("ROLE_USER").orElseThrow(ResourceNotFoundException::new));
+        account.getAccountRoles().add(accountRole);
+
+        // Lưu tài khoản vào cơ sở dữ liệu
+        return accountRepository.save(account);
+    }
+
+    @Override
+    public Account createAccountWithGoogle(OAuth2User user) {
+        Account account = new Account();
+
+        // Thiết lập thông tin tài khoản từ OAuth2User
+        account.setEmail(user.getAttribute("email"));
+        account.setFullName(user.getAttribute("name"));
+        account.setAvatar(user.getAttribute("picture"));
+        account.setUsername(user.getAttribute("email"));
+
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(account);
         accountRole.setRole(roleRepository.findByName("ROLE_USER").orElseThrow(ResourceNotFoundException::new));
