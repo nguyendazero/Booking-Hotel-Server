@@ -1,10 +1,8 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddDiscountToHotelRequestDto;
 import com.vinova.booking_hotel.property.model.*;
@@ -28,7 +26,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
     private final DiscountRepository discountRepository;
 
     @Override
-    public APICustomize<String> addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, String token) {
+    public String addDiscountToHotel(AddDiscountToHotelRequestDto requestDto, String token) {
         // Kiểm tra tính hợp lệ của startDate và endDate
         if (requestDto.getStartDate() == null || requestDto.getEndDate() == null) {
             throw new RuntimeException("Start date and end date must not be null");
@@ -67,7 +65,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
             hotelDiscount.setDiscount(existingDiscount);
             hotelDiscount.setHotel(hotel);
             hotelDiscountRepository.save(hotelDiscount);
-            return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Discount added to hotel");
+            return  "Discount added to hotel";
         }
 
         // Nếu discount chưa tồn tại, tạo mới
@@ -83,11 +81,11 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         hotelDiscount.setHotel(hotel);
         hotelDiscountRepository.save(hotelDiscount);
 
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Discount added to hotel");
+        return "Discount added to hotel";
     }
 
     @Override
-    public APICustomize<String> deleteHotelDiscount(Long hotelDiscountId, String token) {
+    public String deleteHotelDiscount(Long hotelDiscountId, String token) {
         // Tìm hotelDiscount theo hotelDiscountId
         HotelDiscount hotelDiscount = hotelDiscountRepository.findById(hotelDiscountId)
                 .orElseThrow(() -> new RuntimeException("Discount not found"));
@@ -108,6 +106,6 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         // Xóa hotelDiscount
         hotelDiscountRepository.delete(hotelDiscount);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Discount deleted successfully");
+        return "Discount deleted successfully";
     }
 }

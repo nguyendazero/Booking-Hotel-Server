@@ -33,9 +33,11 @@ public class RatingServiceImpl implements RatingService {
     private final ImageRepository imageRepository;
 
     @Override
-    public APICustomize<List<RatingResponseDto>> ratingsByHotelId(Long hotelId) {
+    public List<RatingResponseDto> ratingsByHotelId(Long hotelId) {
         List<Rating> ratings = ratingRepository.findByHotelId(hotelId);
-        List<RatingResponseDto> responseDtos = ratings.stream()
+
+        // Tạo và trả về APICustomize chứa danh sách RatingResponseDto
+        return ratings.stream()
                 .map(rating -> {
                     List<Image> images = imageRepository.findByEntityIdAndEntityType(rating.getId(), EntityType.REVIEW);
                     List<ImageResponseDto> imageDtos = images.stream()
@@ -63,13 +65,10 @@ public class RatingServiceImpl implements RatingService {
                     );
                 })
                 .collect(Collectors.toList());
-
-        // Tạo và trả về APICustomize chứa danh sách RatingResponseDto
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDtos);
     }
 
     @Override
-    public APICustomize<RatingResponseDto> rating(Long id) {
+    public RatingResponseDto rating(Long id) {
         Rating rating = ratingRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
         
         // Lấy danh sách hình ảnh liên quan đến đánh giá từ repository
@@ -81,7 +80,8 @@ public class RatingServiceImpl implements RatingService {
                 ))
                 .collect(Collectors.toList());
 
-        RatingResponseDto responseDto = new RatingResponseDto(
+        // Tạo và trả về APICustomize chứa RatingResponseDto
+        return new RatingResponseDto(
                 rating.getId(),
                 rating.getStars(),
                 rating.getContent(),
@@ -97,13 +97,10 @@ public class RatingServiceImpl implements RatingService {
                         null
                 )
         );
-
-        // Tạo và trả về APICustomize chứa RatingResponseDto
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
     }
 
     @Override
-    public APICustomize<RatingResponseDto> create(AddRatingRequestDto requestDto, String token) {
+    public RatingResponseDto create(AddRatingRequestDto requestDto, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
@@ -155,7 +152,9 @@ public class RatingServiceImpl implements RatingService {
         }
 
         // Chuyển đổi sang RatingResponseDto
-        RatingResponseDto responseDto = new RatingResponseDto(
+
+        // Trả về APICustomize chứa RatingResponseDto
+        return new RatingResponseDto(
                 savedRating.getId(),
                 savedRating.getStars(),
                 savedRating.getContent(),
@@ -171,13 +170,10 @@ public class RatingServiceImpl implements RatingService {
                         null
                 )
         );
-
-        // Trả về APICustomize chứa RatingResponseDto
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), responseDto);
     }
 
     @Override
-    public APICustomize<Void> delete(Long id, String token) {
+    public Void delete(Long id, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -195,6 +191,6 @@ public class RatingServiceImpl implements RatingService {
         ratingRepository.delete(rating);
 
         // Trả về kết quả thành công
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return  null;
     }
 }

@@ -1,6 +1,4 @@
 package com.vinova.booking_hotel.authentication.security;
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
@@ -83,7 +81,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public APICustomize<String> refreshAccessToken(String refreshToken) {
+    public String refreshAccessToken(String refreshToken) {
         try {
             // Xác thực refresh token và lấy thông tin người dùng
             String username = Jwts.parserBuilder()
@@ -115,7 +113,7 @@ public class JwtUtils {
             account.setRefreshToken(newRefreshToken);
             accountRepository.save(account);
 
-            return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), newAccessToken);
+            return newAccessToken;
         } catch (Exception e) {
             throw new RuntimeException("Invalid refresh token exception");
         }

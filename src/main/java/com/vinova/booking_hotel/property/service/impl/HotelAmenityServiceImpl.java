@@ -1,10 +1,8 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddAmenityToHotelRequestDto;
 import com.vinova.booking_hotel.property.dto.request.DeleteAmenityFromHotelRequestDto;
@@ -30,7 +28,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
     private final AccountRepository accountRepository;
 
     @Override
-    public APICustomize<String> addAmenityToHotel(AddAmenityToHotelRequestDto requestDto, String token) {
+    public String addAmenityToHotel(AddAmenityToHotelRequestDto requestDto, String token) {
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(requestDto.getHotelId()).orElseThrow(ResourceNotFoundException::new);
 
@@ -52,7 +50,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
             hotelAmenity.setAmenity(existingAmenity);
             hotelAmenity.setHotel(hotel);
             hotelAmenityRepository.save(hotelAmenity);
-            return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Amenity added to hotel");
+            return "Amenity added to hotel";
         }
 
         // Nếu tiện nghi chưa tồn tại, tạo mới
@@ -66,11 +64,11 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
         hotelAmenity.setHotel(hotel);
         hotelAmenityRepository.save(hotelAmenity);
 
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Amenity added to hotel");
+        return "Amenity added to hotel";
     }
 
     @Override
-    public APICustomize<String> removeAmenityFromHotel(DeleteAmenityFromHotelRequestDto requestDto, String token) {
+    public String removeAmenityFromHotel(DeleteAmenityFromHotelRequestDto requestDto, String token) {
         Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
                 .orElseThrow(ResourceNotFoundException::new);
 
@@ -89,7 +87,7 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
                 .orElseThrow(ResourceNotFoundException::new);
         hotelAmenityRepository.delete(hotelAmenity);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Amenity removed from hotel");
+        return "Amenity removed from hotel";
     }
 
 

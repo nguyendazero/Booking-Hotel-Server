@@ -1,11 +1,9 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.authentication.service.impl.CloudinaryService;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.enums.EntityType;
 import com.vinova.booking_hotel.property.dto.request.AddImagesRequestDto;
 import com.vinova.booking_hotel.property.dto.response.*;
@@ -44,7 +42,7 @@ public class HotelServiceImpl implements HotelService {
     private final BookingRepository bookingRepository;
 
     @Override
-    public APICustomize<List<HotelResponseDto>> hotels(Long accountId, Long districtId, String name,
+    public List<HotelResponseDto> hotels(Long accountId, Long districtId, String name,
                                                        BigDecimal minPrice, BigDecimal maxPrice,
                                                        List<String> amenityNames,
                                                        ZonedDateTime startDate, ZonedDateTime endDate,
@@ -117,7 +115,9 @@ public class HotelServiceImpl implements HotelService {
         }
 
         // Chuyển đổi danh sách khách sạn sang danh sách HotelResponseDto
-        List<HotelResponseDto> hotelResponses = filteredHotels.stream()
+
+        // Trả về kết quả
+        return filteredHotels.stream()
                 .map(hotel -> new HotelResponseDto(
                         hotel.getId(),
                         hotel.getName(),
@@ -132,13 +132,10 @@ public class HotelServiceImpl implements HotelService {
                         null,
                         null
                 )).toList();
-
-        // Trả về kết quả
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), hotelResponses);
     }
 
     @Override
-    public APICustomize<List<HotelResponseDto>> wishlist(String token) {
+    public List<HotelResponseDto> wishlist(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
 
@@ -154,7 +151,9 @@ public class HotelServiceImpl implements HotelService {
         List<Hotel> hotels = hotelRepository.findAllById(hotelIds);
 
         // Chuẩn bị phản hồi bằng cách chuyển đổi khách sạn thành HotelResponseDto
-        List<HotelResponseDto> hotelResponses = hotels.stream()
+
+        // Trả về phản hồi
+        return hotels.stream()
                 .map(hotel -> {
                     Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
                     Long reviewCount = ratingRepository.countByHotel(hotel);
@@ -174,13 +173,10 @@ public class HotelServiceImpl implements HotelService {
                     );
                 })
                 .collect(Collectors.toList());
-
-        // Trả về phản hồi
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), hotelResponses);
     }
 
     @Override
-    public APICustomize<HotelResponseDto> hotel(Long id) {
+    public HotelResponseDto hotel(Long id) {
         // Tìm khách sạn theo ID
         Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
 
@@ -214,7 +210,9 @@ public class HotelServiceImpl implements HotelService {
                 .toList();
 
         // Chuyển đổi khách sạn thành HotelResponseDto
-        HotelResponseDto response = new HotelResponseDto(
+
+        // Trả về kết quả
+        return new HotelResponseDto(
                 hotel.getId(),
                 hotel.getName(),
                 hotel.getDescription(),
@@ -228,13 +226,10 @@ public class HotelServiceImpl implements HotelService {
                 imageResponses,
                 bookedDates
         );
-
-        // Trả về kết quả
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
-    public APICustomize<HotelResponseDto> create(AddHotelRequestDto requestDto, String token) {
+    public HotelResponseDto create(AddHotelRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
         
@@ -255,8 +250,8 @@ public class HotelServiceImpl implements HotelService {
         hotel.setAccount(account);
         
         Hotel savedHotel = hotelRepository.save(hotel);
-        
-        HotelResponseDto response = new HotelResponseDto(
+
+        return new HotelResponseDto(
                 savedHotel.getId(),
                 savedHotel.getName(),
                 savedHotel.getDescription(),
@@ -270,12 +265,10 @@ public class HotelServiceImpl implements HotelService {
                 null,
                 null
         );
-        
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), response);
     }
 
     @Override
-    public APICustomize<Void> update(Long id, AddHotelRequestDto requestDto, String token) {
+    public Void update(Long id, AddHotelRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
 
@@ -313,11 +306,11 @@ public class HotelServiceImpl implements HotelService {
             throw new RuntimeException("You do not have permission to update this hotel");
         }
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return null;
     }
 
     @Override
-    public APICustomize<Void> delete(Long id, String token) {
+    public Void delete(Long id, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
         
@@ -328,11 +321,11 @@ public class HotelServiceImpl implements HotelService {
             throw new RuntimeException("You not have permission to delete this hotel");
         }
         
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return  null;
     }
 
     @Override
-    public APICustomize<List<ImageResponseDto>> addImages(Long hotelId, AddImagesRequestDto requestDto, String token) {
+    public List<ImageResponseDto> addImages(Long hotelId, AddImagesRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
 
@@ -360,7 +353,7 @@ public class HotelServiceImpl implements HotelService {
                     imageResponses.add(new ImageResponseDto(image.getId(), imageUrl));
                 }
             }
-            return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), imageResponses);
+            return imageResponses;
         } else {
             throw new RuntimeException("You do not have permission to add images to this hotel");
         }
@@ -368,7 +361,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     @Transactional
-    public APICustomize<Void> deleteImages(Long hotelId, List<Long> imageIds, String token) {
+    public Void deleteImages(Long hotelId, List<Long> imageIds, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
 
@@ -394,6 +387,6 @@ public class HotelServiceImpl implements HotelService {
         imageRepository.deleteAll(images);
 
         // Trả về phản hồi thành công
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return null;
     }
 }

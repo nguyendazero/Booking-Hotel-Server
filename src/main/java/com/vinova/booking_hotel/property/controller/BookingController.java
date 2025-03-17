@@ -1,11 +1,11 @@
 package com.vinova.booking_hotel.property.controller;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.payment.dto.StripeResponseDto;
 import com.vinova.booking_hotel.property.dto.request.AddBookingRequestDto;
 import com.vinova.booking_hotel.property.dto.response.BookingResponseDto;
 import com.vinova.booking_hotel.property.service.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -21,63 +21,63 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping("/user/booking")
-    public ResponseEntity<APICustomize<StripeResponseDto>> bookHotel(@RequestBody AddBookingRequestDto requestDto,
+    public ResponseEntity<StripeResponseDto> bookHotel(@RequestBody AddBookingRequestDto requestDto,
                                                                      @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<StripeResponseDto> response = bookingService.createBooking(requestDto, accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        StripeResponseDto response = bookingService.createBooking(requestDto, accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/user/booking/{bookingId}/cancel")
-    public ResponseEntity<APICustomize<Void>> cancelBooking(@PathVariable Long bookingId,
+    public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId,
                                                             @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<Void> response = bookingService.cancelBooking(bookingId, accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        Void response = bookingService.cancelBooking(bookingId, accessToken);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PatchMapping("/owner/booking/{bookingId}/confirm")
-    public ResponseEntity<APICustomize<Void>> confirmBooking(@PathVariable Long bookingId,
+    public ResponseEntity<Void> confirmBooking(@PathVariable Long bookingId,
                                                              @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<Void> response = bookingService.confirmBooking(bookingId, accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        Void response = bookingService.confirmBooking(bookingId, accessToken);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
     
     @GetMapping("/user/bookings")
-    public ResponseEntity<APICustomize<List<BookingResponseDto>>> getBookingsByToken(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<BookingResponseDto>> getBookingsByToken(@RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<List<BookingResponseDto>> response = bookingService.getBookingsByToken(accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        List<BookingResponseDto> response = bookingService.getBookingsByToken(accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/user/bookings/reservations")
-    public ResponseEntity<APICustomize<List<BookingResponseDto>>> getReservations(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<BookingResponseDto>> getReservations(@RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<List<BookingResponseDto>> response = bookingService.getReservations(accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        List<BookingResponseDto> response = bookingService.getReservations(accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/owner/bookings/hotel/{hotelId}")
-    public ResponseEntity<APICustomize<List<BookingResponseDto>>> getBookingsByHotelId(@PathVariable Long hotelId,
+    public ResponseEntity<List<BookingResponseDto>> getBookingsByHotelId(@PathVariable Long hotelId,
                                                                                        @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<List<BookingResponseDto>> response = bookingService.getBookingsByHotelId(hotelId, accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        List<BookingResponseDto> response = bookingService.getBookingsByHotelId(hotelId, accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/owner/reservations/hotel/{hotelId}")
-    public ResponseEntity<APICustomize<List<BookingResponseDto>>> getReservationsByHotelId(@PathVariable Long hotelId,
+    public ResponseEntity<List<BookingResponseDto>> getReservationsByHotelId(@PathVariable Long hotelId,
                                                                                            @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
-        APICustomize<List<BookingResponseDto>> response = bookingService.getReservationsByHotelId(hotelId, accessToken);
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+        List<BookingResponseDto> response = bookingService.getReservationsByHotelId(hotelId, accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/admin/bookings")
-    public ResponseEntity<APICustomize<List<BookingResponseDto>>> getAllBooking() {
-        APICustomize<List<BookingResponseDto>> response = bookingService.getAllBooking();
-        return ResponseEntity.status(Integer.parseInt(response.getStatusCode())).body(response);
+    public ResponseEntity<List<BookingResponseDto>> getAllBooking() {
+        List<BookingResponseDto> response = bookingService.getAllBooking();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     
 }

@@ -1,10 +1,8 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.dto.response.APICustomize;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddConfigRequestDto;
 import com.vinova.booking_hotel.property.dto.response.ConfigResponseDto;
@@ -26,52 +24,48 @@ public class ConfigServiceImpl implements ConfigService {
     private final JwtUtils jwtUtils;
 
     @Override
-    public APICustomize<List<ConfigResponseDto>> configs() {
+    public List<ConfigResponseDto> configs() {
         List<Config> configs = configRepository.findAll();
-        List<ConfigResponseDto> response = configs.stream()
+
+        return configs.stream()
                 .map(config -> new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()))
                 .toList();
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
-    public APICustomize<List<ConfigResponseDto>> configsByToken(String token) {
+    public List<ConfigResponseDto> configsByToken(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         List<Config> configs = configRepository.findByAccount(account);
-        List<ConfigResponseDto> response = configs.stream()
+
+        return configs.stream()
                 .map(config -> new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()))
                 .toList();
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
-    public APICustomize<List<ConfigResponseDto>> configsByAccountId(Long accountId) {
+    public List<ConfigResponseDto> configsByAccountId(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         List<Config> configs = configRepository.findByAccount(account);
-        List<ConfigResponseDto> response = configs.stream()
+
+        return configs.stream()
                 .map(config -> new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()))
                 .toList();
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
-    public APICustomize<ConfigResponseDto> config(Long id) {
+    public ConfigResponseDto config(Long id) {
         Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
-        ConfigResponseDto response = new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
+        return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
     }
 
     @Override
-    public APICustomize<ConfigResponseDto> create(AddConfigRequestDto requestDto, String token) {
+    public ConfigResponseDto create(AddConfigRequestDto requestDto, String token) {
         Config config = new Config();
         config.setKey(requestDto.getKey());
         config.setValue(requestDto.getValue());
@@ -81,11 +75,11 @@ public class ConfigServiceImpl implements ConfigService {
         config.setAccount(account);
         configRepository.save(config);
 
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()));
+        return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
     }
 
     @Override
-    public APICustomize<ConfigResponseDto> update(Long id, AddConfigRequestDto requestDto, String token) {
+    public ConfigResponseDto update(Long id, AddConfigRequestDto requestDto, String token) {
         Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
@@ -101,11 +95,11 @@ public class ConfigServiceImpl implements ConfigService {
         }
         configRepository.save(config);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()));
+        return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
     }
 
     @Override
-    public APICustomize<Void> delete(Long id, String token) {
+    public Void delete(Long id, String token) {
         Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
@@ -115,6 +109,6 @@ public class ConfigServiceImpl implements ConfigService {
             throw new RuntimeException("You not have permission to delete this config");
         }
         
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return null;
     }
 }

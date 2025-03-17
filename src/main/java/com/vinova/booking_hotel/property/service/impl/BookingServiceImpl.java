@@ -33,7 +33,7 @@ public class BookingServiceImpl implements BookingService {
     private final StripeService stripeService;
 
     @Override
-    public APICustomize<StripeResponseDto> createBooking(AddBookingRequestDto requestDto, String token) {
+    public StripeResponseDto createBooking(AddBookingRequestDto requestDto, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -128,7 +128,7 @@ public class BookingServiceImpl implements BookingService {
         response.setSessionId(stripe.getSessionId());
         response.setSessionUrl(stripe.getSessionUrl());
 
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), response);
+        return response;
     }
 
     private BigDecimal calculateTotalPrice(AddBookingRequestDto requestDto, Hotel hotel) {
@@ -166,7 +166,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public APICustomize<Void> cancelBooking(Long bookingId, String token) {
+    public Void cancelBooking(Long bookingId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -189,11 +189,11 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return null;
     }
 
     @Override
-    public APICustomize<Void> confirmBooking(Long bookingId, String token) {
+    public Void confirmBooking(Long bookingId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -216,17 +216,18 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), null);
+        return null;
     }
 
     @Override
-    public APICustomize<List<BookingResponseDto>> getBookingsByToken(String token) {
+    public List<BookingResponseDto> getBookingsByToken(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
         
         List<Booking> bookings = bookingRepository.findByAccount(account);
-        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+
+        return bookings.stream()
                 .map(booking -> new BookingResponseDto(
                         booking.getId(),
                         booking.getStartDate(),
@@ -255,12 +256,10 @@ public class BookingServiceImpl implements BookingService {
                                 null
                         )
                 )).collect(Collectors.toList());
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
     }
 
     @Override
-    public APICustomize<List<BookingResponseDto>> getReservations(String token) {
+    public List<BookingResponseDto> getReservations(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -270,7 +269,8 @@ public class BookingServiceImpl implements BookingService {
 
         // Lọc những booking nằm trong tương lai
         ZonedDateTime now = ZonedDateTime.now();
-        List<BookingResponseDto> futureBookings = bookings.stream()
+
+        return bookings.stream()
                 .filter(booking -> booking.getStartDate().isAfter(now))
                 .map(booking -> new BookingResponseDto(
                         booking.getId(),
@@ -300,12 +300,10 @@ public class BookingServiceImpl implements BookingService {
                                 null
                         )
                 )).collect(Collectors.toList());
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), futureBookings);
     }
 
     @Override
-    public APICustomize<List<BookingResponseDto>> getBookingsByHotelId(Long hotelId, String token) {
+    public List<BookingResponseDto> getBookingsByHotelId(Long hotelId, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -324,7 +322,8 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = bookingRepository.findByHotel(hotel);
 
         // Chuyển đổi sang BookingResponseDto
-        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+
+        return bookings.stream()
                 .map(booking -> new BookingResponseDto(
                         booking.getId(),
                         booking.getStartDate(),
@@ -353,12 +352,10 @@ public class BookingServiceImpl implements BookingService {
                                 null
                         )
                 )).collect(Collectors.toList());
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
     }
 
     @Override
-    public APICustomize<List<BookingResponseDto>> getReservationsByHotelId(Long hotelId, String token) {
+    public List<BookingResponseDto> getReservationsByHotelId(Long hotelId, String token) {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -378,7 +375,9 @@ public class BookingServiceImpl implements BookingService {
 
         // Lọc booking nằm trong tương lai
         ZonedDateTime now = ZonedDateTime.now();
-        List<BookingResponseDto> futureReservations = bookings.stream()
+        // Chỉ lấy booking có ngày bắt đầu lớn hơn thời gian hiện tại
+
+        return bookings.stream()
                 .filter(booking -> booking.getStartDate().isAfter(now)) // Chỉ lấy booking có ngày bắt đầu lớn hơn thời gian hiện tại
                 .map(booking -> new BookingResponseDto(
                         booking.getId(),
@@ -408,17 +407,16 @@ public class BookingServiceImpl implements BookingService {
                                 null
                         )
                 )).collect(Collectors.toList());
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), futureReservations);
     }
 
     @Override
-    public APICustomize<List<BookingResponseDto>> getAllBooking() {
+    public List<BookingResponseDto> getAllBooking() {
         // Lấy danh sách tất cả booking
         List<Booking> bookings = bookingRepository.findAll();
 
         // Chuyển đổi danh sách booking sang BookingResponseDto
-        List<BookingResponseDto> bookingResponseDtos = bookings.stream()
+
+        return bookings.stream()
                 .map(booking -> new BookingResponseDto(
                         booking.getId(),
                         booking.getStartDate(),
@@ -447,8 +445,6 @@ public class BookingServiceImpl implements BookingService {
                                 null
                         )
                 )).collect(Collectors.toList());
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), bookingResponseDtos);
     }
 
 

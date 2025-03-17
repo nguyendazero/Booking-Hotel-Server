@@ -2,7 +2,6 @@ package com.vinova.booking_hotel.authentication.service.impl;
 
 import com.vinova.booking_hotel.authentication.dto.request.*;
 import com.vinova.booking_hotel.authentication.dto.response.*;
-import com.vinova.booking_hotel.common.enums.ApiError;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.model.AccountRole;
 import com.vinova.booking_hotel.authentication.model.Role;
@@ -28,7 +27,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -103,7 +101,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public APICustomize<List<AccountResponseDto>> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder) {
+    public List<AccountResponseDto> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder) {
         // Kiểm tra hợp lệ cho pageIndex và pageSize
         if (pageIndex < 0 || pageSize <= 0) {
             throw new InvalidPageOrSizeException();
@@ -152,11 +150,11 @@ public class AccountServiceImpl implements AccountService {
         }
 
         // Trả về kết quả
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), accountResponses);
+        return accountResponses;
     }
 
     @Override
-    public APICustomize<SignInResponseDto> signIn(SignInRequest request) {
+    public SignInResponseDto signIn(SignInRequest request) {
         String loginIdentifier = request.getUsernameOrEmail();
 
         // Tìm kiếm tài khoản bằng username hoặc email
@@ -228,16 +226,15 @@ public class AccountServiceImpl implements AccountService {
         accountRepository.save(account);
 
         // Tạo response với đầy đủ các trường cần thiết
-        SignInResponseDto response = new SignInResponseDto(
+
+        return new SignInResponseDto(
                 jwtToken,
                 account.getRefreshToken()
         );
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), response);
     }
 
     @Override
-    public APICustomize<String> signUp(SignUpRequest request) {
+    public String signUp(SignUpRequest request) {
 
         // Kiểm tra xem password và rePassword có khớp nhau không
         if (!request.getPassword().equals(request.getRePassword())) {
@@ -260,7 +257,7 @@ public class AccountServiceImpl implements AccountService {
                 String verificationCode = String.format("%06d", new Random().nextInt(999999));
                 verificationMap.put(existingAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), request.getUsername(), request.getFullName()));
                 emailService.sendAccountReactivationEmail(existingAccount.getEmail(), verificationCode);
-                return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Account exists but not activated. Verification code sent again. Please verify to activate your account.");
+                return "Account exists but not activated. Verification code sent again. Please verify to activate your account.";
             } else {
                 throw new ResourceAlreadyExistsException("email");
             }
@@ -294,10 +291,10 @@ public class AccountServiceImpl implements AccountService {
         verificationMap.put(newAccount.getEmail(), new VerificationInfo(verificationCode, LocalDateTime.now(), newAccount.getUsername(), newAccount.getFullName()));
         emailService.sendAccountVerificationEmail(newAccount.getEmail(), verificationCode);
 
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Verification code sent. Please verify to activate account.");
+        return "Account created successfully. Verification code sent. Please verify to activate your account.";
     }
 
-    public APICustomize<String> resendVerificationCode(String email) {
+    public String resendVerificationCode(String email) {
         // Kiểm tra xem tài khoản có tồn tại không
         Account existingAccount = accountRepository.findByEmail(email)
                 .orElseThrow(ResourceNotFoundException::new);
@@ -326,11 +323,11 @@ public class AccountServiceImpl implements AccountService {
         // Gửi mã xác thực mới
         emailService.sendAccountVerificationEmail(existingAccount.getEmail(), verificationCode);
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "New verification code sent. Please check your email.");
+        return "New verification code sent. Please check your email.";
     }
 
     @Override
-    public APICustomize<String> verifyEmail(String email, String code) {
+    public String verifyEmail(String email, String code) {
         VerificationInfo verificationInfo = verificationMap.get(email);
         if (verificationInfo == null ||
                 !verificationInfo.getVerificationCode().equals(code) ||
@@ -352,11 +349,12 @@ public class AccountServiceImpl implements AccountService {
 
         // Xóa thông tin xác thực sau khi xác thực thành công
         verificationMap.remove(email);
-        return new APICustomize<>(ApiError.CREATED.getCode(), ApiError.CREATED.getMessage(), "Account activated successfully.");
+
+        return "Account activated successfully.";
     }
 
     @Override
-    public APICustomize<String> sendVerificationForPasswordReset(String emailOrUsername) {
+    public String sendVerificationForPasswordReset(String emailOrUsername) {
         String email;
 
         // Kiểm tra xem đầu vào có phải là email không
@@ -387,11 +385,11 @@ public class AccountServiceImpl implements AccountService {
         // Gửi email xác thực cho reset password
         emailService.sendPasswordResetEmail(account.getEmail(), verificationCode);
 
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), "Verification code sent to your email. Please check your email to reset your password.");
+        return "Verification code sent to your email. Please check your email to reset your password.";
     }
 
     @Override
-    public APICustomize<String> resetPassword(ResetPasswordRequest request) {
+    public String resetPassword(ResetPasswordRequest request) {
         
         // Xác thực mã
         VerificationInfo verificationInfo = verificationMap.get(request.getEmail());
@@ -417,11 +415,11 @@ public class AccountServiceImpl implements AccountService {
         // Xóa thông tin xác thực
         verificationMap.remove(request.getEmail());
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Password has been reset successfully.");
+        return "Password has been reset successfully.";
     }
 
     @Override
-    public APICustomize<String> changePassword(ChangePasswordRequest request, String token) {
+    public String changePassword(ChangePasswordRequest request, String token) {
         // Lấy accountId bằng token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
@@ -444,22 +442,22 @@ public class AccountServiceImpl implements AccountService {
         account.setPassword(encodedPassword);
         accountRepository.save(account);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Password has been changed successfully.");
+        return "Password has been changed successfully.";
     }
 
     @Override
-    public APICustomize<String> UnBlockAccount(Long id) {
+    public String UnBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new);
         
         account.setBlockReason(null);
         accountRepository.save(account);
 
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "Account has been unblocked successfully.");
+        return "Account has been unblocked successfully.";
     }
 
     @Override
-    public APICustomize<AccountResponseDto> updateAccountInfo(UpdateInfoRequest request, String token) {
+    public AccountResponseDto updateAccountInfo(UpdateInfoRequest request, String token) {
         // Lấy accountId bằng token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         
@@ -491,7 +489,8 @@ public class AccountServiceImpl implements AccountService {
                 .toList();
 
         // Tạo đối tượng AccountResponseDto để trả về
-        AccountResponseDto responseDto = new AccountResponseDto(
+
+        return new AccountResponseDto(
                 account.getId(),
                 account.getFullName(),
                 account.getUsername(),
@@ -500,12 +499,10 @@ public class AccountServiceImpl implements AccountService {
                 account.getPhone(),
                 roles
         );
-
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), responseDto);
     }
 
     @Override
-    public APICustomize<AccountResponseDto> getAccountByToken(String token) {
+    public AccountResponseDto getAccountByToken(String token) {
         // Lấy userId bằng token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
@@ -519,7 +516,8 @@ public class AccountServiceImpl implements AccountService {
                 .toList();
         
         // Tạo đối tượng AccountResponseDto để trả về
-        AccountResponseDto responseDto = new AccountResponseDto(
+
+        return new AccountResponseDto(
                 account.getId(),
                 account.getFullName(),
                 account.getUsername(),
@@ -528,20 +526,16 @@ public class AccountServiceImpl implements AccountService {
                 account.getPhone(),
                 roles
         );
-
-        return new APICustomize<>(ApiError.OK.getCode(), ApiError.OK.getMessage(), responseDto);
     }
 
     @Override
-    public APICustomize<String> deleteAccountById(Long accountId) {
+    public void deleteAccountById(Long accountId) {
         // Tìm tài khoản bằng accountId
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(ResourceNotFoundException::new);
 
         // Xóa tài khoản
         accountRepository.delete(account);
-        
-        return new APICustomize<>(ApiError.NO_CONTENT.getCode(), ApiError.NO_CONTENT.getMessage(), "");
     }
 
     @Override
