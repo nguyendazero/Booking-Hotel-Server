@@ -1,4 +1,0 @@
-package com.vinova.booking_hotel.property.repository;
-
-public interface DistrictRepository {
-}

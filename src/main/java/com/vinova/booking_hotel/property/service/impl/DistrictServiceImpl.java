@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.property.service.impl;
 
+import com.vinova.booking_hotel.common.exception.ResourceAlreadyExistsException;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddDistrictRequestDto;
 import com.vinova.booking_hotel.property.dto.response.DistrictResponseDto;
@@ -41,6 +42,8 @@ public class DistrictServiceImpl implements DistrictService {
     @Override
     public DistrictResponseDto create(AddDistrictRequestDto requestDto) {
         District district = new District();
+        if(districtRepository.existsByName(requestDto.getName())) 
+            throw new ResourceAlreadyExistsException("District name already exists");
         district.setName(requestDto.getName());
         districtRepository.save(district);
 
