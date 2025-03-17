@@ -15,10 +15,13 @@ import com.vinova.booking_hotel.authentication.service.EmailService;
 import com.vinova.booking_hotel.authentication.repository.specification.AccountSpecification;
 import com.vinova.booking_hotel.common.exception.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +30,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.time.*;
@@ -56,6 +63,43 @@ public class AccountServiceImpl implements AccountService {
     //Login
     private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private static final int MAX_FAILED_ATTEMPTS = 5;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    // Google
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String clientIdGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String clientSecretGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
+
+    @Value("${spring.security.oauth2.client.registration.google.token-uri}")
+    private String tokenUriGoogle;
+
+    @Value("${spring.security.oauth2.client.registration.google.user-info-uri}")
+    private String userInfoUriGoogle;
+    
+    // Github
+    @Value("${spring.security.oauth2.client.registration.github.client-id}")
+    private String clientIdGithub;
+
+    @Value("${spring.security.oauth2.client.registration.github.client-secret}")
+    private String clientSecretGithub;
+
+    @Value("${spring.security.oauth2.client.provider.github.authorization-uri}")
+    private String authorizationUri;
+
+    @Value("${spring.security.oauth2.client.registration.github.scope}")
+    private String scope;
+
+    @Value("${spring.security.oauth2.client.provider.github.token-uri}")
+    private String tokenUriGithub;
+
+    @Value("${spring.security.oauth2.client.provider.github.user-info-uri}")
+    private String userInfoUriGithub;
 
 
     @Override
@@ -501,33 +545,89 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Account createAccountWithGithub(OAuth2User user) {
-        Account account = new Account();
+    public AccountResponseDto handleGithubOAuth(String code) {
+        // Bước 1: Đổi mã xác thực lấy access token
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        // Thiết lập thông tin tài khoản từ OAuth2User
-        account.setEmail(user.getAttribute("email"));
-        account.setFullName(user.getAttribute("name"));
-        account.setAvatar(user.getAttribute("avatar_url"));
-        account.setUsername(user.getAttribute("login"));
-        
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientIdGithub);
+        body.add("client_secret", clientSecretGithub);
+        body.add("code", code);
+
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                tokenUriGithub, HttpMethod.POST, new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
+
+        // Bước 2: Lấy thông tin người dùng
+        headers.setBearerAuth(accessToken);
+        ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
+                userInfoUriGithub, HttpMethod.GET, new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        // Tạo tài khoản mới
+        Account account = new Account();
+        account.setEmail(Objects.requireNonNull(userResponse.getBody()).get("email").toString());
+        account.setFullName(userResponse.getBody().get("name").toString());
+        account.setAvatar(userResponse.getBody().get("avatar_url").toString());
+        account.setUsername(userResponse.getBody().get("login").toString());
+
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(account);
         accountRole.setRole(roleRepository.findByName("ROLE_USER").orElseThrow(ResourceNotFoundException::new));
         account.getAccountRoles().add(accountRole);
 
         // Lưu tài khoản vào cơ sở dữ liệu
-        return accountRepository.save(account);
+        Account newAccount = accountRepository.save(account);
+
+        return new AccountResponseDto(
+                newAccount.getId(),
+                newAccount.getFullName(),
+                newAccount.getUsername(),
+                newAccount.getEmail(),
+                newAccount.getAvatar(),
+                newAccount.getPhone(),
+                newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
+        );
     }
 
     @Override
-    public Account createAccountWithGoogle(OAuth2User user) {
-        Account account = new Account();
+    public AccountResponseDto handleGoogleOAuth(String code) {
+        // Bước 1: Đổi mã xác thực lấy access token từ Google
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        // Thiết lập thông tin tài khoản từ OAuth2User
-        account.setEmail(user.getAttribute("email"));
-        account.setFullName(user.getAttribute("name"));
-        account.setAvatar(user.getAttribute("picture"));
-        account.setUsername(user.getAttribute("email"));
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientIdGoogle);
+        body.add("client_secret", clientSecretGoogle);
+        body.add("code", code);
+        body.add("redirect_uri", redirectUri);
+        body.add("grant_type", "authorization_code");
+
+        ResponseEntity<Map<String, Object>> tokenResponse = restTemplate.exchange(
+                tokenUriGoogle, HttpMethod.POST, new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        String accessToken = (String) Objects.requireNonNull(tokenResponse.getBody()).get("access_token");
+
+        // Bước 2: Lấy thông tin người dùng từ Google
+        headers.setBearerAuth(accessToken);
+        ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
+                userInfoUriGoogle, HttpMethod.GET, new HttpEntity<>(headers),
+                new ParameterizedTypeReference<>() {}
+        );
+
+        // Tạo tài khoản mới
+        Account account = new Account();
+        account.setEmail(Objects.requireNonNull(userResponse.getBody()).get("email").toString());
+        account.setFullName(userResponse.getBody().get("name").toString());
+        account.setAvatar(userResponse.getBody().get("picture").toString());
+        account.setUsername(userResponse.getBody().get("email").toString().split("@")[0]);
 
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(account);
@@ -535,7 +635,17 @@ public class AccountServiceImpl implements AccountService {
         account.getAccountRoles().add(accountRole);
 
         // Lưu tài khoản vào cơ sở dữ liệu
-        return accountRepository.save(account);
+        Account newAccount = accountRepository.save(account);
+
+        return new AccountResponseDto(
+                newAccount.getId(),
+                newAccount.getFullName(),
+                newAccount.getUsername(),
+                newAccount.getEmail(),
+                newAccount.getAvatar(),
+                newAccount.getPhone(),
+                newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
+        );
     }
 
     @Override

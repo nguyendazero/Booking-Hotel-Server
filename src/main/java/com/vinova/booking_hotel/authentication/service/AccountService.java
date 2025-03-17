@@ -35,9 +35,9 @@ public interface AccountService {
 
     APICustomize<String> deleteAccountById(Long accountId);
 
-    Account createAccountWithGithub(OAuth2User user);
+    AccountResponseDto handleGithubOAuth(String code);
 
-    Account createAccountWithGoogle(OAuth2User user);
+    AccountResponseDto handleGoogleOAuth(String code) ;
 
     public void blockInactiveAccounts();
     
