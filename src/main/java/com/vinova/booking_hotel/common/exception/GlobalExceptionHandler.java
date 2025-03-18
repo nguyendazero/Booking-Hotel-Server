@@ -18,7 +18,7 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(HttpServletRequest request, ResourceNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setTimestamp(LocalDateTime.now().toString());
         errorResponse.setPath(request.getRequestURI());
@@ -27,12 +27,31 @@ public class GlobalExceptionHandler {
 
         ErrorDetail errorDetail = new ErrorDetail();
         errorDetail.setErrorMessageId("NOTFOUND4041E");
-        errorDetail.setErrorMessage("Resource not found");
+        errorDetail.setErrorMessage(ex.getFieldName() + " not found");
 
         errors.add(errorDetail);
         errorResponse.setErrors(errors);
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(HttpServletRequest request, ResourceAlreadyExistsException ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(LocalDateTime.now().toString());
+        errorResponse.setPath(request.getRequestURI());
+
+        List<ErrorDetail> errors = new ArrayList<>();
+
+        ErrorDetail errorDetail = new ErrorDetail();
+        errorDetail.setErrorMessageId("RESOURCEALREADYEXISTS");
+        errorDetail.setErrorMessage("Resource already exists" + " with this " + ex.getFieldName());
+
+        errors.add(errorDetail);
+        errorResponse.setErrors(errors);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(CodeVerifySentException.class)
@@ -126,25 +145,6 @@ public class GlobalExceptionHandler {
         errorResponse.setErrors(errors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-    }
-
-    @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleResourceAlreadyExistsException(HttpServletRequest request, ResourceAlreadyExistsException ex) {
-
-        ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setTimestamp(LocalDateTime.now().toString());
-        errorResponse.setPath(request.getRequestURI());
-
-        List<ErrorDetail> errors = new ArrayList<>();
-        
-        ErrorDetail errorDetail = new ErrorDetail();
-        errorDetail.setErrorMessageId("RESOURCEALREADYEXISTS");
-        errorDetail.setErrorMessage("Resource already exists" + " with this " + ex.getFieldName());
-
-        errors.add(errorDetail);
-        errorResponse.setErrors(errors);
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
     @ExceptionHandler(InValidVerifyEmailException.class)

@@ -25,10 +25,10 @@ public class WishListServiceImpl implements WishListService {
     public String addToWishList(Long hotelId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra xem khách sạn đã có trong danh sách yêu thích chưa
         if (wishListRepository.findByAccountAndHotel(account, hotel) != null) {
@@ -47,10 +47,10 @@ public class WishListServiceImpl implements WishListService {
     public String removeFromWishList(Long hotelId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         WishList wishList = wishListRepository.findByAccountAndHotel(account, hotel);
         if (wishList == null) {

@@ -37,11 +37,11 @@ public class BookingServiceImpl implements BookingService {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("account"));
 
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra thời gian đặt phòng
         if (requestDto.getStartDate().isAfter(requestDto.getEndDate())) {
@@ -169,11 +169,11 @@ public class BookingServiceImpl implements BookingService {
     public Void cancelBooking(Long bookingId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm booking theo bookingId
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Booking"));
 
         // Kiểm tra xem account có phải là chủ sở hữu của booking không
         if (!booking.getAccount().getId().equals(account.getId())) {
@@ -196,11 +196,11 @@ public class BookingServiceImpl implements BookingService {
     public Void confirmBooking(Long bookingId, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm booking theo bookingId
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Booking"));
 
         // Kiểm tra xem account có phải là chủ sở hữu của hotel không
         if (!booking.getHotel().getAccount().getId().equals(account.getId())) {
@@ -223,7 +223,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponseDto> getBookingsByToken(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
         
         List<Booking> bookings = bookingRepository.findByAccount(account);
 
@@ -262,7 +262,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponseDto> getReservations(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Lấy danh sách booking của tài khoản
         List<Booking> bookings = bookingRepository.findByAccount(account);
@@ -307,11 +307,11 @@ public class BookingServiceImpl implements BookingService {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
         if (!hotel.getAccount().getId().equals(accountId)) {
@@ -359,11 +359,11 @@ public class BookingServiceImpl implements BookingService {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(hotelId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
         if (!hotel.getAccount().getId().equals(accountId)) {

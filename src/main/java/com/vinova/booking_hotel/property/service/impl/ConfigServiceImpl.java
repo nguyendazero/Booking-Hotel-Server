@@ -36,7 +36,7 @@ public class ConfigServiceImpl implements ConfigService {
     public List<ConfigResponseDto> configsByToken(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         List<Config> configs = configRepository.findByAccount(account);
 
@@ -48,7 +48,7 @@ public class ConfigServiceImpl implements ConfigService {
     @Override
     public List<ConfigResponseDto> configsByAccountId(Long accountId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         List<Config> configs = configRepository.findByAccount(account);
 
@@ -59,7 +59,8 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public ConfigResponseDto config(Long id) {
-        Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Config config = configRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
 
         return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
     }
@@ -71,7 +72,7 @@ public class ConfigServiceImpl implements ConfigService {
         config.setValue(requestDto.getValue());
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
         config.setAccount(account);
         configRepository.save(config);
 
@@ -80,9 +81,11 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public ConfigResponseDto update(Long id, AddConfigRequestDto requestDto, String token) {
-        Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Config config = configRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
         if (Objects.equals(account.getId(), config.getAccount().getId())) {
             if (requestDto.getKey() != null) {
                 config.setKey(requestDto.getKey());
@@ -100,9 +103,11 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public Void delete(Long id, String token) {
-        Config config = configRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Config config = configRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
         if (Objects.equals(account.getId(), config.getAccount().getId())) {
             configRepository.delete(config);
         }else{

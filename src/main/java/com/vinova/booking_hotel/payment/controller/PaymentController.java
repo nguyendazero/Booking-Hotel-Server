@@ -34,7 +34,8 @@ public class PaymentController {
 
             // Lấy bookingId từ metadata đã lưu nó khi tạo session
             Long bookingId = Long.valueOf(session.getMetadata().get("bookingId"));
-            Booking booking = bookingRepository.findById(bookingId).orElseThrow(ResourceNotFoundException::new);
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> new ResourceNotFoundException("booking"));
             booking.setStatus(BookingStatus.CONFIRMED);
 
             bookingRepository.save(booking);

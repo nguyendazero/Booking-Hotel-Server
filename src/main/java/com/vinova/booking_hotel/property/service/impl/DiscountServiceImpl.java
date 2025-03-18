@@ -27,7 +27,8 @@ public class DiscountServiceImpl implements DiscountService {
 
     @Override
     public DiscountResponseDto discount(Long id) {
-        Discount discount = discountRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Discount discount = discountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Discount"));
 
         return new DiscountResponseDto(discount.getId(), discount.getRate());
     }
@@ -43,7 +44,8 @@ public class DiscountServiceImpl implements DiscountService {
 
     @Override
     public DiscountResponseDto update(Long id, AddDiscountRequestDto requestDto) {
-        Discount discount = discountRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Discount discount = discountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Discount"));
         if (requestDto.getRate() != null) {
             discount.setRate(requestDto.getRate());
         }
@@ -54,7 +56,8 @@ public class DiscountServiceImpl implements DiscountService {
 
     @Override
     public Void delete(Long id) {
-        Discount discount = discountRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Discount discount = discountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Discount"));
         discountRepository.delete(discount);
 
         return null;

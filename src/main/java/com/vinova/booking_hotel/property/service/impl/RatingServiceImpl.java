@@ -69,7 +69,8 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     public RatingResponseDto rating(Long id) {
-        Rating rating = ratingRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Rating rating = ratingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rating"));
         
         // Lấy danh sách hình ảnh liên quan đến đánh giá từ repository
         List<Image> images = imageRepository.findByEntityIdAndEntityType(rating.getId(), EntityType.REVIEW);
@@ -105,11 +106,11 @@ public class RatingServiceImpl implements RatingService {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm khách sạn theo hotelId
         Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra xem người dùng đã đặt phòng tại khách sạn này chưa
         Booking booking = bookingRepository.findFirstByHotelAndAccount(hotel, account)
@@ -177,10 +178,11 @@ public class RatingServiceImpl implements RatingService {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Tìm đánh giá theo id
-        Rating rating = ratingRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Rating rating = ratingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rating"));
 
         // Kiểm tra xem tài khoản có quyền xóa đánh giá này không
         if (!rating.getAccount().getId().equals(account.getId())) {

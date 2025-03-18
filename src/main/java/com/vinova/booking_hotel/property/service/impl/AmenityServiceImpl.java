@@ -37,7 +37,8 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     public AmenityResponseDto amenity(Long id) {
-        Amenity amenity = amenityRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Amenity amenity = amenityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("amenity"));
 
         return new AmenityResponseDto(amenity.getId(), amenity.getName());
     }
@@ -53,7 +54,8 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     public AmenityResponseDto update(Long id, AddAmenityRequestDto requestDto) {
-        Amenity amenity = amenityRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Amenity amenity = amenityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("amenity"));
         if (requestDto.getName() != null) {
             amenity.setName(requestDto.getName());
         }
@@ -64,7 +66,8 @@ public class AmenityServiceImpl implements AmenityService {
 
     @Override
     public Void delete(Long id) {
-        Amenity amenity = amenityRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Amenity amenity = amenityRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("amenity"));
         amenityRepository.delete(amenity);
 
         return null;

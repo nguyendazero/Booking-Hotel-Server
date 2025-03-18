@@ -38,12 +38,13 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         }
 
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(requestDto.getHotelId()).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Kiểm tra quyền truy cập
         if (!hotel.getAccount().getId().equals(account.getId())) {
@@ -96,7 +97,7 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Kiểm tra quyền truy cập
         if (!hotel.getAccount().getId().equals(account.getId())) {

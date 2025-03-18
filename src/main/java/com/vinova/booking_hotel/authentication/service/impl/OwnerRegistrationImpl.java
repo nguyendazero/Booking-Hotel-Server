@@ -33,7 +33,7 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
     public String registerOwner(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("account"));
 
         // Kiểm tra vai trò và yêu cầu
         if (account.getAccountRoles().stream().noneMatch(role -> role.getRole().getName().equals("ROLE_USER"))) {
@@ -95,7 +95,7 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
     public Void acceptRegistration(Long ownerRegistrationId) {
         // Tìm yêu cầu đăng ký theo ID
         OwnerRegistration ownerRegistration = ownerRegistrationRepository.findById(ownerRegistrationId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("ownerRegistration"));
         
         if(!ownerRegistration.getStatus().name().equals("PENDING")) {
             throw new OwnerRegistrationException("This request handled");
@@ -106,7 +106,8 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
 
         AccountRole accountRole = new AccountRole();
         accountRole.setAccount(ownerRegistration.getAccount());
-        accountRole.setRole(roleRepository.findByName("ROLE_OWNER").orElseThrow(ResourceNotFoundException::new));
+        accountRole.setRole(roleRepository.findByName("ROLE_OWNER")
+                .orElseThrow(() -> new ResourceNotFoundException("role")));
         accountRoleRepository.save(accountRole);
         
         // Lưu cập nhật vào repository
@@ -118,7 +119,7 @@ public class OwnerRegistrationImpl implements OwnerRegistrationService {
     public Void rejectRegistration(Long ownerRegistrationId) {
         // Tìm yêu cầu đăng ký theo ID
         OwnerRegistration ownerRegistration = ownerRegistrationRepository.findById(ownerRegistrationId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("ownerRegistration"));
 
         if(!ownerRegistration.getStatus().name().equals("PENDING")) {
             throw new OwnerRegistrationException("This request handled");

@@ -31,7 +31,8 @@ public class DistrictServiceImpl implements DistrictService {
 
     @Override
     public DistrictResponseDto district(Long id) {
-        District district = districtRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        District district = districtRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("District"));
 
         return new DistrictResponseDto(
                 district.getId(), 
@@ -52,7 +53,8 @@ public class DistrictServiceImpl implements DistrictService {
 
     @Override
     public DistrictResponseDto update(Long id, AddDistrictRequestDto requestDto) {
-        District district = districtRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        District district = districtRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("District"));
         if(requestDto.getName() != null){
             district.setName(requestDto.getName());
         }
@@ -63,7 +65,8 @@ public class DistrictServiceImpl implements DistrictService {
 
     @Override
     public Void delete(Long id) {
-        District district = districtRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        District district = districtRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("District"));
         districtRepository.delete(district);
         
         return null;

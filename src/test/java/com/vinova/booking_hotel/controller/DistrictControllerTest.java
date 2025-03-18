@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 
@@ -62,10 +63,12 @@ public class DistrictControllerTest {
     public void testDistrict_WhenNotExists() {
         // Arrange
         Long districtId = 1L;
-        Mockito.when(districtService.district(districtId)).thenThrow(new ResourceNotFoundException());
+        Mockito.when(districtService.district(districtId)).thenThrow(new ResourceNotFoundException("District not found"));
 
-        // Act and Assert
+        // Act
         ResponseEntity<DistrictResponseDto> response = districtController.district(districtId);
+
+        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -104,11 +107,19 @@ public class DistrictControllerTest {
         Long districtId = 1L;
         AddDistrictRequestDto requestDto = new AddDistrictRequestDto();
         Mockito.when(districtService.update(anyLong(), any(AddDistrictRequestDto.class)))
-                .thenThrow(new ResourceNotFoundException());
+                .thenThrow(new ResourceNotFoundException("District not found"));
 
-        // Act and Assert
-        ResponseEntity<DistrictResponseDto> response = districtController.update(districtId, requestDto);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        // Act
+        ResponseEntity<DistrictResponseDto> response = null;
+        try {
+            response = districtController.update(districtId, requestDto);
+        } catch (ResourceNotFoundException e) {
+            // Assert
+            assertEquals("District not found", e.getMessage());
+        }
+
+        // Check that response is null since we expect an exception
+        assertNull(response);
     }
 
     @Test
@@ -128,7 +139,7 @@ public class DistrictControllerTest {
     public void testDelete_WhenNotExists() {
         // Arrange
         Long districtId = 1L;
-        Mockito.doThrow(new ResourceNotFoundException()).when(districtService).delete(districtId);
+        Mockito.doThrow(new ResourceNotFoundException("District not found")).when(districtService).delete(districtId);
 
         // Act and Assert
         ResponseEntity<Void> response = districtController.delete(districtId);

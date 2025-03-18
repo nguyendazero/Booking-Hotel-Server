@@ -30,12 +30,13 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
     @Override
     public String addAmenityToHotel(AddAmenityToHotelRequestDto requestDto, String token) {
         // Tìm khách sạn theo hotelId
-        Hotel hotel = hotelRepository.findById(requestDto.getHotelId()).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Lấy accountId từ token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Kiểm tra quyền truy cập
         if (!hotel.getAccount().getId().equals(account.getId())) {
@@ -70,21 +71,21 @@ public class HotelAmenityServiceImpl implements HotelAmenityService {
     @Override
     public String removeAmenityFromHotel(DeleteAmenityFromHotelRequestDto requestDto, String token) {
         Hotel hotel = hotelRepository.findById(requestDto.getHotelId())
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         if (!hotel.getAccount().getId().equals(account.getId())) {
             throw new RuntimeException("You do not have permission to remove amenities from this hotel");
         }
-        
+
         Amenity amenity = amenityRepository.findById(requestDto.getAmenityId())
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("Amenity"));
         // Tìm kiếm Amenity trong hotelAmenity
         HotelAmenity hotelAmenity = hotelAmenityRepository.findByHotelAndAmenity(hotel, amenity)
-                .orElseThrow(ResourceNotFoundException::new);
+                .orElseThrow(() -> new ResourceNotFoundException("HotelAmenity"));
         hotelAmenityRepository.delete(hotelAmenity);
 
         return "Amenity removed from hotel";

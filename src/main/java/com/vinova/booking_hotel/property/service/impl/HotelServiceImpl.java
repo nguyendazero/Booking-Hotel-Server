@@ -137,7 +137,8 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<HotelResponseDto> wishlist(String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Lấy danh sách yêu thích liên kết với tài khoản
         List<WishList> wishList = account.getWishList();
@@ -178,7 +179,8 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public HotelResponseDto hotel(Long id) {
         // Tìm khách sạn theo ID
-        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Lấy điểm đánh giá trung bình của khách sạn
         Double averageRating = ratingRepository.findAverageRatingByHotelId(id);
@@ -231,7 +233,8 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public HotelResponseDto create(AddHotelRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
         
         Hotel hotel = new Hotel();
         hotel.setName(requestDto.getName());
@@ -245,7 +248,8 @@ public class HotelServiceImpl implements HotelService {
         String highLightImageUrl = cloudinaryService.uploadImage(requestDto.getHighLightImageUrl());
         hotel.setHighLightImageUrl(highLightImageUrl);
         //Xu ly district
-        District district = districtRepository.findById(requestDto.getDistrictId()).orElseThrow(ResourceNotFoundException::new);
+        District district = districtRepository.findById(requestDto.getDistrictId())
+                .orElseThrow(() -> new ResourceNotFoundException("District"));
         hotel.setDistrict(district);
         hotel.setAccount(account);
         
@@ -270,9 +274,11 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public Void update(Long id, AddHotelRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
-        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
         if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
             // Cập nhật thông tin khách sạn chỉ nếu có giá trị mới
             if (requestDto.getName() != null) {
@@ -297,7 +303,8 @@ public class HotelServiceImpl implements HotelService {
                 hotel.setHighLightImageUrl(cloudinaryService.uploadImage(requestDto.getHighLightImageUrl()));
             }
             if (requestDto.getDistrictId() != null) {
-                hotel.setDistrict(districtRepository.findById(requestDto.getDistrictId()).orElseThrow(ResourceNotFoundException::new));
+                hotel.setDistrict(districtRepository.findById(requestDto.getDistrictId())
+                        .orElseThrow(() -> new ResourceNotFoundException("District")));
             }
 
             // Lưu cập nhật
@@ -312,9 +319,11 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public Void delete(Long id, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
-        
-        Hotel hotel = hotelRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
+
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
         if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
             hotelRepository.delete(hotel);
         }else{
@@ -327,9 +336,11 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<ImageResponseDto> addImages(Long hotelId, AddImagesRequestDto requestDto, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
-        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra quyền truy cập
         if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
@@ -363,10 +374,12 @@ public class HotelServiceImpl implements HotelService {
     @Transactional
     public Void deleteImages(Long hotelId, List<Long> imageIds, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId).orElseThrow(ResourceNotFoundException::new);
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         // Lấy thông tin khách sạn và kiểm tra quyền truy cập
-        Hotel hotel = hotelRepository.findById(hotelId).orElseThrow(ResourceNotFoundException::new);
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Kiểm tra xem tài khoản có phải là chủ sở hữu khách sạn không
         if (!Objects.equals(account.getId(), hotel.getAccount().getId())) {
