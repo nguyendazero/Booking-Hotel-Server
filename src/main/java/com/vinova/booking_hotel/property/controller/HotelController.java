@@ -34,7 +34,7 @@ public class HotelController {
                                             @RequestParam(required = false) ZonedDateTime startDate,
                                             @RequestParam(required = false) ZonedDateTime endDate,
                                             @RequestParam(defaultValue = "0") int pageIndex,
-                                            @RequestParam(defaultValue = "5") int pageSize,
+                                            @RequestParam(defaultValue = "8") int pageSize,
                                             @RequestParam(defaultValue = "id") String sortBy,
                                             @RequestParam(defaultValue = "asc") String sortOrder) {
 

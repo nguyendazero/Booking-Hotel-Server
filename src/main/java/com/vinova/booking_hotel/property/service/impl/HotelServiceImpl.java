@@ -43,17 +43,15 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public List<HotelResponseDto> hotels(Long accountId, Long districtId, String name,
-                                                       BigDecimal minPrice, BigDecimal maxPrice,
-                                                       List<String> amenityNames,
-                                                       ZonedDateTime startDate, ZonedDateTime endDate,
-                                                       int pageIndex, int pageSize, String sortBy, String sortOrder) {
+                                         BigDecimal minPrice, BigDecimal maxPrice,
+                                         List<String> amenityNames,
+                                         ZonedDateTime startDate, ZonedDateTime endDate,
+                                         int pageIndex, int pageSize, String sortBy, String sortOrder) {
 
-        // Kiểm tra hợp lệ cho pageIndex và pageSize
         if (pageIndex < 0 || pageSize <= 0) {
             throw new InvalidPageOrSizeException();
         }
 
-        // Tạo Specification với các tiêu chí tìm kiếm
         Specification<Hotel> spec = Specification
                 .where(HotelSpecification.hasAccountId(accountId))
                 .and(HotelSpecification.hasDistrictId(districtId))
@@ -63,35 +61,31 @@ public class HotelServiceImpl implements HotelService {
                 .and(HotelSpecification.hasAmenityNames(amenityNames))
                 .and(HotelSpecification.isAvailableBetween(startDate, endDate));
 
-        // Sử dụng Pageable từ Spring Data
         Sort sort = Sort.by(sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
         Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
-        
-        // Tìm danh sách khách sạn với Specification và phân trang
+
         Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
 
-        // Lọc các khách sạn để đảm bảo có đủ số lượng tiện nghi
         List<Hotel> filteredHotels = hotelPage.getContent().stream()
                 .filter(hotel -> {
-                    if (amenityNames == null) return true; // Nếu amenityNames là null, không lọc
+                    if (amenityNames == null) return true;
                     long count = hotel.getHotelAmenities().stream()
                             .filter(hotelAmenity -> amenityNames.contains(hotelAmenity.getAmenity().getName()))
                             .count();
-                    return count == amenityNames.size(); // Phải có đủ số lượng tiện nghi
+                    return count == amenityNames.size();
                 })
                 .collect(Collectors.toList());
 
-        // Tính toán điểm số trung bình cho từng khách sạn
         Map<Long, Double> averageRatings = new HashMap<>();
         Map<Long, Long> reviewCounts = new HashMap<>();
+
         for (Hotel hotel : filteredHotels) {
             Double averageRating = hotelRepository.findAverageRatingByHotelId(hotel.getId());
-            Long reviewCount = ratingRepository.countByHotel(hotel); // Đếm số lượng đánh giá
+            Long reviewCount = ratingRepository.countByHotel(hotel);
             averageRatings.put(hotel.getId(), averageRating);
             reviewCounts.put(hotel.getId(), reviewCount);
         }
 
-        // Sắp xếp theo rating, pricePerDay hoặc id
         if (sortBy != null) {
             Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
@@ -114,25 +108,30 @@ public class HotelServiceImpl implements HotelService {
             }
         }
 
-        // Chuyển đổi danh sách khách sạn sang danh sách HotelResponseDto
+        return filteredHotels.stream().map(hotel -> {
+            DiscountResponseDto discountResponseDto = hotel.getHotelDiscounts().stream()
+                    .findFirst()
+                    .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
+                    .orElse(null);
 
-        // Trả về kết quả
-        return filteredHotels.stream()
-                .map(hotel -> new HotelResponseDto(
-                        hotel.getId(),
-                        hotel.getName(),
-                        hotel.getDescription(),
-                        hotel.getPricePerDay(),
-                        hotel.getHighLightImageUrl(),
-                        hotel.getStreetAddress(),
-                        hotel.getLatitude(),
-                        hotel.getLongitude(),
-                        averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
-                        reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
-                        null,
-                        null
-                )).toList();
+            return new HotelResponseDto(
+                    hotel.getId(),
+                    hotel.getName(),
+                    hotel.getDescription(),
+                    hotel.getPricePerDay(),
+                    hotel.getHighLightImageUrl(),
+                    hotel.getStreetAddress(),
+                    hotel.getLatitude(),
+                    hotel.getLongitude(),
+                    averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
+                    reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
+                    discountResponseDto,
+                    null,
+                    null
+            );
+        }).toList();
     }
+
 
     @Override
     public List<HotelResponseDto> wishlist(String token) {
@@ -151,30 +150,40 @@ public class HotelServiceImpl implements HotelService {
         // Lấy danh sách khách sạn dựa trên các ID đã lấy
         List<Hotel> hotels = hotelRepository.findAllById(hotelIds);
 
-        // Chuẩn bị phản hồi bằng cách chuyển đổi khách sạn thành HotelResponseDto
+        Map<Long, Double> averageRatings = new HashMap<>();
+        Map<Long, Long> reviewCounts = new HashMap<>();
 
-        // Trả về phản hồi
-        return hotels.stream()
-                .map(hotel -> {
-                    Double averageRating = ratingRepository.findAverageRatingByHotelId(hotel.getId());
-                    Long reviewCount = ratingRepository.countByHotel(hotel);
-                    return new HotelResponseDto(
-                            hotel.getId(),
-                            hotel.getName(),
-                            hotel.getDescription(),
-                            hotel.getPricePerDay(),
-                            hotel.getHighLightImageUrl(),
-                            hotel.getStreetAddress(),
-                            hotel.getLatitude(),
-                            hotel.getLongitude(),
-                            averageRating != null ? averageRating : 0.0,
-                            reviewCount,
-                            null,
-                            null
-                    );
-                })
-                .collect(Collectors.toList());
+        for (Hotel hotel : hotels) {
+            Double averageRating = hotelRepository.findAverageRatingByHotelId(hotel.getId());
+            Long reviewCount = ratingRepository.countByHotel(hotel);
+            averageRatings.put(hotel.getId(), averageRating);
+            reviewCounts.put(hotel.getId(), reviewCount);
+        }
+
+        return hotels.stream().map(hotel -> {
+            DiscountResponseDto discountResponseDto = hotel.getHotelDiscounts().stream()
+                    .findFirst()
+                    .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
+                    .orElse(null);
+
+            return new HotelResponseDto(
+                    hotel.getId(),
+                    hotel.getName(),
+                    hotel.getDescription(),
+                    hotel.getPricePerDay(),
+                    hotel.getHighLightImageUrl(),
+                    hotel.getStreetAddress(),
+                    hotel.getLatitude(),
+                    hotel.getLongitude(),
+                    averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
+                    reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
+                    discountResponseDto,
+                    null,
+                    null
+            );
+        }).toList();
     }
+
 
     @Override
     public HotelResponseDto hotel(Long id) {
@@ -183,37 +192,29 @@ public class HotelServiceImpl implements HotelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
         // Lấy điểm đánh giá trung bình của khách sạn
-        Double averageRating = ratingRepository.findAverageRatingByHotelId(id);
+        Double averageRating = hotelRepository.findAverageRatingByHotelId(id);
+        Long reviewCount = ratingRepository.countByHotel(hotel);
 
         // Lấy danh sách đặt phòng của khách sạn
         List<Booking> bookings = bookingRepository.findByHotelId(id);
-
-        // Lấy thời điểm hiện tại
         ZonedDateTime now = ZonedDateTime.now();
-
-        // Chuyển đổi các đặt phòng thành DateRangeResponseDto chỉ cho những booking chưa diễn ra
         List<DateRangeResponseDto> bookedDates = bookings.stream()
-                .filter(booking -> booking.getStartDate().isAfter(now)) // Lọc các booking có ngày bắt đầu trong tương lai
-                .map(booking -> new DateRangeResponseDto(
-                        booking.getStartDate(),
-                        booking.getEndDate()
-                ))
-                .collect(Collectors.toList());
-
-        // Lấy số lượng đánh giá của khách sạn
-        Long reviewCount = ratingRepository.countByHotel(hotel);
-
-        // Lấy hình ảnh của khách sạn thông qua entityId và entityType
-        List<Image> images = imageRepository.findByEntityIdAndEntityType(id, EntityType.HOTEL);
-        List<ImageResponseDto> imageResponses = images.stream()
-                .map(image -> new ImageResponseDto(
-                        image.getId(),
-                        image.getImageUrl()))
+                .filter(booking -> booking.getStartDate().isAfter(now))
+                .map(booking -> new DateRangeResponseDto(booking.getStartDate(), booking.getEndDate()))
                 .toList();
 
-        // Chuyển đổi khách sạn thành HotelResponseDto
+        // Lấy danh sách hình ảnh của khách sạn
+        List<Image> images = imageRepository.findByEntityIdAndEntityType(id, EntityType.HOTEL);
+        List<ImageResponseDto> imageResponses = images.stream()
+                .map(image -> new ImageResponseDto(image.getId(), image.getImageUrl()))
+                .toList();
 
-        // Trả về kết quả
+        // Lấy thông tin giảm giá (nếu có)
+        DiscountResponseDto discountResponseDto = hotel.getHotelDiscounts().stream()
+                .findFirst()
+                .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
+                .orElse(null);
+
         return new HotelResponseDto(
                 hotel.getId(),
                 hotel.getName(),
@@ -225,10 +226,12 @@ public class HotelServiceImpl implements HotelService {
                 hotel.getLongitude(),
                 averageRating != null ? averageRating : 0.0,
                 reviewCount,
+                discountResponseDto,
                 imageResponses,
                 bookedDates
         );
     }
+
 
     @Override
     public HotelResponseDto create(AddHotelRequestDto requestDto, String token) {
@@ -266,6 +269,7 @@ public class HotelServiceImpl implements HotelService {
                 savedHotel.getLongitude(),
                 null,
                 0L,
+                null,
                 null,
                 null
         );
