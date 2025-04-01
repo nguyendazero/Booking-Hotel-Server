@@ -114,6 +114,11 @@ public class HotelServiceImpl implements HotelService {
                     .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
                     .orElse(null);
 
+            List<Image> images = imageRepository.findByEntityIdAndEntityType(hotel.getId(), EntityType.HOTEL);
+            List<ImageResponseDto> imageResponses = images.stream()
+                    .map(image -> new ImageResponseDto(image.getId(), image.getImageUrl()))
+                    .toList();
+
             return new HotelResponseDto(
                     hotel.getId(),
                     hotel.getName(),
@@ -126,7 +131,7 @@ public class HotelServiceImpl implements HotelService {
                     averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                     reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
                     discountResponseDto,
-                    null,
+                    imageResponses,
                     null
             );
         }).toList();
