@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.property.dto.response;
 
+import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class HotelResponseDto {
     private Double rating;
     private Long reviews;
     private DiscountResponseDto discount;
+    private AccountResponseDto owner;
     private List<ImageResponseDto> images;
     private List<DateRangeResponseDto> bookedDates;
 }

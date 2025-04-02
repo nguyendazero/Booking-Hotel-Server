@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.property.service.impl;
 
+import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
@@ -118,6 +119,18 @@ public class HotelServiceImpl implements HotelService {
             List<ImageResponseDto> imageResponses = images.stream()
                     .map(image -> new ImageResponseDto(image.getId(), image.getImageUrl()))
                     .toList();
+            
+            Account owner = accountRepository.findById(hotel.getAccount().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Account"));
+            AccountResponseDto accountResponseDto = new AccountResponseDto(
+                    owner.getId(),
+                    owner.getFullName(),
+                    owner.getUsername(),
+                    owner.getEmail(),
+                    owner.getAvatar(),
+                    owner.getPhone(),
+                    null
+            );
 
             return new HotelResponseDto(
                     hotel.getId(),
@@ -131,6 +144,7 @@ public class HotelServiceImpl implements HotelService {
                     averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                     reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
                     discountResponseDto,
+                    accountResponseDto,
                     imageResponses,
                     null
             );
@@ -171,6 +185,18 @@ public class HotelServiceImpl implements HotelService {
                     .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
                     .orElse(null);
 
+            Account owner = accountRepository.findById(hotel.getAccount().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Account"));
+            AccountResponseDto accountResponseDto = new AccountResponseDto(
+                    owner.getId(),
+                    owner.getFullName(),
+                    owner.getUsername(),
+                    owner.getEmail(),
+                    owner.getAvatar(),
+                    owner.getPhone(),
+                    null
+            );
+
             return new HotelResponseDto(
                     hotel.getId(),
                     hotel.getName(),
@@ -183,6 +209,7 @@ public class HotelServiceImpl implements HotelService {
                     averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
                     reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
                     discountResponseDto,
+                    accountResponseDto,
                     null,
                     null
             );
@@ -220,6 +247,18 @@ public class HotelServiceImpl implements HotelService {
                 .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
                 .orElse(null);
 
+        Account owner = accountRepository.findById(hotel.getAccount().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
+        AccountResponseDto accountResponseDto = new AccountResponseDto(
+                owner.getId(),
+                owner.getFullName(),
+                owner.getUsername(),
+                owner.getEmail(),
+                owner.getAvatar(),
+                owner.getPhone(),
+                null
+        );
+
         return new HotelResponseDto(
                 hotel.getId(),
                 hotel.getName(),
@@ -232,6 +271,7 @@ public class HotelServiceImpl implements HotelService {
                 averageRating != null ? averageRating : 0.0,
                 reviewCount,
                 discountResponseDto,
+                accountResponseDto,
                 imageResponses,
                 bookedDates
         );
@@ -243,6 +283,18 @@ public class HotelServiceImpl implements HotelService {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account"));
+
+        Account owner = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
+        AccountResponseDto accountResponseDto = new AccountResponseDto(
+                owner.getId(),
+                owner.getFullName(),
+                owner.getUsername(),
+                owner.getEmail(),
+                owner.getAvatar(),
+                owner.getPhone(),
+                null
+        );
         
         Hotel hotel = new Hotel();
         hotel.setName(requestDto.getName());
@@ -275,6 +327,7 @@ public class HotelServiceImpl implements HotelService {
                 null,
                 0L,
                 null,
+                accountResponseDto,
                 null,
                 null
         );

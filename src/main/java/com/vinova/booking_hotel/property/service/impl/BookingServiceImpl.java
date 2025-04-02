@@ -112,6 +112,7 @@ public class BookingServiceImpl implements BookingService {
                         null,
                         null,
                         null,
+                        null,
                         null
                 ),
                 new AccountResponseDto(
@@ -245,7 +246,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getHotel().getStreetAddress(),
                                 booking.getHotel().getLatitude(),
                                 booking.getHotel().getLongitude(),
-                                null, null, null, null, null
+                                null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
                                 account.getId(),
@@ -289,7 +290,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getHotel().getStreetAddress(),
                                 booking.getHotel().getLatitude(),
                                 booking.getHotel().getLongitude(),
-                                null, null, null, null, null
+                                null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
                                 account.getId(),
@@ -341,7 +342,7 @@ public class BookingServiceImpl implements BookingService {
                                 hotel.getStreetAddress(),
                                 hotel.getLatitude(),
                                 hotel.getLongitude(),
-                                null, null, null, null, null
+                                null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
                                 account.getId(),
@@ -396,7 +397,7 @@ public class BookingServiceImpl implements BookingService {
                                 hotel.getStreetAddress(),
                                 hotel.getLatitude(),
                                 hotel.getLongitude(),
-                                null, null, null, null, null
+                                null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
                                 account.getId(),
@@ -434,7 +435,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getHotel().getStreetAddress(),
                                 booking.getHotel().getLatitude(),
                                 booking.getHotel().getLongitude(),
-                                null, null, null, null, null
+                                null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
                                 booking.getAccount().getId(),
