@@ -131,8 +131,10 @@ public class RatingServiceImpl implements RatingService {
         // Lưu đánh giá vào cơ sở dữ liệu
         Rating savedRating = ratingRepository.save(rating);
 
-        // Lưu hình ảnh vào Cloudinary và tạo danh sách hình ảnh
+        // Khởi tạo danh sách hình ảnh
         List<ImageResponseDto> imageDtos = new ArrayList<>();
+
+        // Kiểm tra và lưu hình ảnh nếu có
         if (requestDto.getImages() != null && !requestDto.getImages().isEmpty()) {
             for (MultipartFile imageFile : requestDto.getImages()) {
                 // Tải hình ảnh lên Cloudinary
@@ -160,7 +162,7 @@ public class RatingServiceImpl implements RatingService {
                 savedRating.getStars(),
                 savedRating.getContent(),
                 savedRating.getCreateDt(),
-                imageDtos,
+                imageDtos,  // Nếu không có hình ảnh, imageDtos sẽ là danh sách rỗng
                 new AccountResponseDto(
                         account.getId(),
                         account.getFullName(),
@@ -172,7 +174,7 @@ public class RatingServiceImpl implements RatingService {
                 )
         );
     }
-
+    
     @Override
     public Void delete(Long id, String token) {
         // Lấy accountId từ token
