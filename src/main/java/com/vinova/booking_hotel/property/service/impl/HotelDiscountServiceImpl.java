@@ -5,6 +5,8 @@ import com.vinova.booking_hotel.authentication.repository.AccountRepository;
 import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddDiscountToHotelRequestDto;
+import com.vinova.booking_hotel.property.dto.response.DiscountResponseDto;
+import com.vinova.booking_hotel.property.dto.response.HotelDiscountResponseDto;
 import com.vinova.booking_hotel.property.model.*;
 import com.vinova.booking_hotel.property.repository.DiscountRepository;
 import com.vinova.booking_hotel.property.repository.HotelDiscountRepository;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -108,5 +111,25 @@ public class HotelDiscountServiceImpl implements HotelDiscountService {
         hotelDiscountRepository.delete(hotelDiscount);
 
         return "Discount deleted successfully";
+    }
+
+    @Override
+    public List<HotelDiscountResponseDto> getHotelDiscounts(Long hotelId) {
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
+
+        return hotel.getHotelDiscounts().stream()
+                .map(hotelDiscount ->
+                        new HotelDiscountResponseDto(
+                                hotelDiscount.getId(),
+                                hotelDiscount.getStartDate(),
+                                hotelDiscount.getEndDate(),
+                                new DiscountResponseDto(
+                                        hotelDiscount.getDiscount().getId(),
+                                        hotelDiscount.getDiscount().getRate()
+                                )
+                        )
+                )
+                .collect(Collectors.toList());
     }
 }
