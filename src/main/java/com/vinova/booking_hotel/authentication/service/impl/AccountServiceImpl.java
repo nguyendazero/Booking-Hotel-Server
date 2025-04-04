@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -244,6 +245,7 @@ public class AccountServiceImpl implements AccountService {
         );
     }
 
+    @Async
     @Override
     public String signUp(SignUpRequest request) {
 
@@ -306,6 +308,7 @@ public class AccountServiceImpl implements AccountService {
         return "Account created successfully. Verification code sent. Please verify to activate your account.";
     }
 
+    @Async
     public String resendVerificationCode(String email) {
         // Kiểm tra xem tài khoản có tồn tại không
         Account existingAccount = accountRepository.findByEmail(email)
@@ -337,7 +340,7 @@ public class AccountServiceImpl implements AccountService {
 
         return "New verification code sent. Please check your email.";
     }
-
+    
     @Override
     public String verifyEmail(String email, String code) {
         VerificationInfo verificationInfo = verificationMap.get(email);
