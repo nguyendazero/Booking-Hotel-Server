@@ -1,6 +1,7 @@
 package com.vinova.booking_hotel.authentication.controller;
 
 import com.vinova.booking_hotel.authentication.service.AccountService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,8 +74,8 @@ public class AccountController {
     }
 
     @PostMapping("/public/sign-in")
-    public ResponseEntity<SignInResponseDto> signIn(@RequestBody SignInRequest request) {
-        SignInResponseDto response = accountService.signIn(request);
+    public ResponseEntity<SignInResponseDto> signIn(@RequestBody SignInRequest request, HttpServletResponse httpServletResponse) {
+        SignInResponseDto response = accountService.signIn(request, httpServletResponse);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

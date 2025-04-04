@@ -33,6 +33,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.*;
 import java.util.*;
@@ -154,7 +156,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public SignInResponseDto signIn(SignInRequest request) {
+    public SignInResponseDto signIn(SignInRequest request, HttpServletResponse httpServletResponse) {
         String loginIdentifier = request.getUsernameOrEmail();
 
         // Tìm kiếm tài khoản bằng username hoặc email
@@ -225,8 +227,17 @@ public class AccountServiceImpl implements AccountService {
         account.setLatestLogin(LocalDateTime.now());
         accountRepository.save(account);
 
-        // Tạo response với đầy đủ các trường cần thiết
+        //Thêm token vào cookie
+        Cookie jwtCookie = new Cookie("token", jwtToken);
+        jwtCookie.setHttpOnly(false); // Giúp chống XSS
+        jwtCookie.setSecure(false); // Chỉ gửi qua HTTPS
+        jwtCookie.setPath("/"); // Áp dụng toàn bộ ứng dụng
+        jwtCookie.setMaxAge(60 * 60 * 24 * 7); // Token tồn tại 7 ngày
+        jwtCookie.setAttribute("SameSite", "Strict");
 
+        httpServletResponse.addCookie(jwtCookie);
+
+        // Tạo response với đầy đủ các trường cần thiết
         return new SignInResponseDto(
                 jwtToken,
                 account.getRefreshToken()

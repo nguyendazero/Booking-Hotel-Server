@@ -3,6 +3,7 @@ package com.vinova.booking_hotel.authentication.service;
 import com.vinova.booking_hotel.authentication.dto.request.*;
 import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.dto.response.SignInResponseDto;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ public interface AccountService {
 
     List<AccountResponseDto> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder);
 
-    SignInResponseDto signIn(SignInRequest request);
+    SignInResponseDto signIn(SignInRequest request, HttpServletResponse httpServletResponse);
 
     String signUp(SignUpRequest request);
 
