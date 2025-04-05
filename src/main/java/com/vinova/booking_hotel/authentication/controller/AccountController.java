@@ -123,7 +123,7 @@ public class AccountController {
                                                @ModelAttribute @Valid UpdateInfoRequest request) {
         String accessToken = token.substring(7);
         AccountResponseDto response = accountService.updateAccountInfo(request, accessToken);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/user/me")

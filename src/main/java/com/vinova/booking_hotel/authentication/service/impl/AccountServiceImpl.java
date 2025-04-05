@@ -178,18 +178,14 @@ public class AccountServiceImpl implements AccountService {
 
         // Nếu mật khẩu không khớp, tăng số lần không thành công
         if (!passwordMatch) {
-            // Sử dụng ID tài khoản làm khóa cho các lần thất bại
             String accountIdKey = String.valueOf(account.getId());
             failedAttempts.merge(accountIdKey, 1, Integer::sum);
-
-            // Lấy số lần không thành công sau khi cập nhật
             attempts = failedAttempts.get(accountIdKey);
 
             // Kiểm tra nếu đã vượt quá số lần cho phép
             if (attempts >= MAX_FAILED_ATTEMPTS) {
                 account.setBlockReason("too_many_failed_login_attempts");
                 accountRepository.save(account);
-
                 // Đặt lại số lần không thành công về 0
                 failedAttempts.remove(accountIdKey);
             }
@@ -215,12 +211,14 @@ public class AccountServiceImpl implements AccountService {
         String currentRefreshToken = account.getRefreshToken();
         LocalDateTime refreshExpiresAt = account.getRefreshExpiresAt();
 
-        // Kiểm tra nếu refresh token là null hoặc đã hết hạn
+        // Tạo refresh token mới
+        String refreshToken = (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt)))
+                ? jwtUtils.generateRefreshTokenFromUserDetails(userDetails)
+                : currentRefreshToken;
+
+        // Cập nhật refreshToken và thời gian hết hạn nếu cần
         if (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt))) {
-            // Tạo refresh token mới
-            String refreshToken = jwtUtils.generateRefreshTokenFromUserDetails(userDetails);
             account.setRefreshToken(refreshToken);
-            // Cập nhật thời gian hết hạn cho refresh token mới
             account.setRefreshExpiresAt(LocalDateTime.now().plusDays(30)); // 30 ngày
         }
 
@@ -230,18 +228,28 @@ public class AccountServiceImpl implements AccountService {
 
         //Thêm token vào cookie
         Cookie jwtCookie = new Cookie("token", jwtToken);
-        jwtCookie.setHttpOnly(false); // Giúp chống XSS
-        jwtCookie.setSecure(false); // Chỉ gửi qua HTTPS
-        jwtCookie.setPath("/"); // Áp dụng toàn bộ ứng dụng
-        jwtCookie.setMaxAge(60 * 60 * 24 * 7); // Token tồn tại 7 ngày
+        jwtCookie.setHttpOnly(false);
+        jwtCookie.setSecure(false);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60 * 24 * 7);
         jwtCookie.setAttribute("SameSite", "Strict");
 
         httpServletResponse.addCookie(jwtCookie);
 
+        //Thêm refresh vào cookie
+//        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+//        refreshTokenCookie.setHttpOnly(false);
+//        refreshTokenCookie.setSecure(false);
+//        refreshTokenCookie.setPath("/");
+//        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+//        refreshTokenCookie.setAttribute("SameSite", "Strict");
+//
+//        httpServletResponse.addCookie(refreshTokenCookie);
+
         // Tạo response với đầy đủ các trường cần thiết
         return new SignInResponseDto(
                 jwtToken,
-                account.getRefreshToken()
+                refreshToken  // Đảm bảo sử dụng refreshToken đã được thiết lập
         );
     }
 

@@ -2,6 +2,7 @@ package com.vinova.booking_hotel.authentication.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,13 +15,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthAccessDenied accessDeniedHandler;
     private final JwtUtils jwtUtils;
@@ -66,6 +66,7 @@ public class SecurityConfig {
                             .accessDeniedHandler(accessDeniedHandler);
                 })
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Cho phép tất cả OPTIONS
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .requestMatchers(ADMIN_ENDPOINTS).hasRole("ADMIN")
                         .requestMatchers(HOTEL_OWNER_ENDPOINTS).hasAnyRole("OWNER", "ADMIN")
@@ -84,6 +85,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
 }

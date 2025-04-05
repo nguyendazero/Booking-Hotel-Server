@@ -65,6 +65,7 @@ public class JwtUtils {
                 .claim("fullName", account.getFullName())
                 .claim("phone", account.getPhone())
                 .claim("avatar", account.getAvatar())
+                .claim("refreshToken", account.getRefreshToken())
                 .claim("roles", roleNames)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
