@@ -104,12 +104,12 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/user/change-password")
+    @PutMapping("/user/change-password")
     public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token,
                                                @RequestBody @Valid ChangePasswordRequest request) {
         String accessToken = token.substring(7);
         String response = accountService.changePassword(request, accessToken);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/admin/unblock-account/{id}")
