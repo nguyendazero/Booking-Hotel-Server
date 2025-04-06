@@ -237,14 +237,14 @@ public class AccountServiceImpl implements AccountService {
         httpServletResponse.addCookie(jwtCookie);
 
         //Thêm refresh vào cookie
-//        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-//        refreshTokenCookie.setHttpOnly(false);
-//        refreshTokenCookie.setSecure(false);
-//        refreshTokenCookie.setPath("/");
-//        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
-//        refreshTokenCookie.setAttribute("SameSite", "Strict");
-//
-//        httpServletResponse.addCookie(refreshTokenCookie);
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        refreshTokenCookie.setAttribute("SameSite", "Strict");
+
+        httpServletResponse.addCookie(refreshTokenCookie);
 
         // Tạo response với đầy đủ các trường cần thiết
         return new SignInResponseDto(
