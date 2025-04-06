@@ -86,10 +86,10 @@ public class AccountController {
     }
 
     @PostMapping("/public/refresh-token")
-    public ResponseEntity<String> refreshAccessToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> refreshAccessToken(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
-        String response = jwtUtils.refreshAccessToken(refreshToken);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        Map<String, String> tokens = jwtUtils.refreshAccessToken(refreshToken);
+        return ResponseEntity.status(HttpStatus.CREATED).body(tokens);
     }
 
     @PostMapping("/public/forgot-password")

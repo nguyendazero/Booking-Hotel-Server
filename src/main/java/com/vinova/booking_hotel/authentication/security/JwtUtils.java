@@ -18,7 +18,9 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -82,9 +84,8 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String refreshAccessToken(String refreshToken) {
+    public Map<String, String> refreshAccessToken(String refreshToken) {
         try {
-            // Xác thực refresh token và lấy thông tin người dùng
             String username = Jwts.parserBuilder()
                     .setSigningKey(key())
                     .build()
@@ -92,29 +93,28 @@ public class JwtUtils {
                     .getBody()
                     .getSubject();
 
-            // Lấy thông tin tài khoản từ cơ sở dữ liệu
             Account account = accountRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
-            // Kiểm tra xem refresh token có hợp lệ?
             if (!refreshToken.equals(account.getRefreshToken()) ||
                     account.getRefreshExpiresAt() == null ||
                     account.getRefreshExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("Invalid refresh token");
             }
 
-            // Tạo access token mới
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             String newAccessToken = generateTokenFromUserDetails(userDetails);
-
-            // Tạo refresh token mới
             String newRefreshToken = generateRefreshTokenFromUserDetails(userDetails);
 
-            // Lưu refresh token mới vào cơ sở dữ liệu
             account.setRefreshToken(newRefreshToken);
+            account.setRefreshExpiresAt(LocalDateTime.now().plusDays(7)); // cập nhật thời hạn
             accountRepository.save(account);
 
-            return newAccessToken;
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("accessToken", newAccessToken);
+            tokens.put("refreshToken", newRefreshToken);
+
+            return tokens;
         } catch (Exception e) {
             throw new RuntimeException("Invalid refresh token exception");
         }
