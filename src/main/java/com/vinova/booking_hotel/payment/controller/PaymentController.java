@@ -5,6 +5,8 @@ import com.stripe.model.checkout.Session;
 import com.vinova.booking_hotel.common.enums.BookingStatus;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.model.Booking;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import com.vinova.booking_hotel.property.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -24,25 +28,27 @@ public class PaymentController {
 
     private final BookingRepository bookingRepository;
 
+    @SneakyThrows
     @GetMapping("/public/payment/success")
-    public ResponseEntity<String> success(@RequestParam("session_id") String sessionId) {
+    public void success(@RequestParam("session_id") String sessionId, HttpServletResponse response) {
         Stripe.apiKey = secretKey;
 
         try {
             // Lấy thông tin session từ Stripe
             Session session = Session.retrieve(sessionId);
 
-            // Lấy bookingId từ metadata đã lưu nó khi tạo session
+            // Lấy bookingId từ metadata đã lưu khi tạo session
             Long bookingId = Long.valueOf(session.getMetadata().get("bookingId"));
             Booking booking = bookingRepository.findById(bookingId)
                     .orElseThrow(() -> new ResourceNotFoundException("booking"));
             booking.setStatus(BookingStatus.CONFIRMED);
 
             bookingRepository.save(booking);
-            
-            return ResponseEntity.ok("Payment successful! Booking confirmed.");
-        }catch (Exception e) {
-            return ResponseEntity.status(500).body("Error updating booking: " + e.getMessage());
+
+            // Thực hiện chuyển hướng đến trang thành công
+            response.sendRedirect("http://localhost:5173/booking-success");
+        } catch (Exception e) {
+            response.sendRedirect("http://localhost:5173/error-page");
         }
     }
 
@@ -50,5 +56,5 @@ public class PaymentController {
     public ResponseEntity<String> fail() {
         return ResponseEntity.ok("Payment canceled! Please try again.");
     }
-    
+
 }
