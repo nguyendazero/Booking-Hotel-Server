@@ -183,8 +183,8 @@ public class BookingServiceImpl implements BookingService {
         }
 
         // Kiểm tra trạng thái hiện tại của booking
-        if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new RuntimeException("Only pending bookings can be cancelled");
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Only pending or confirmed bookings can be cancelled");
         }
 
         // Cập nhật trạng thái của booking

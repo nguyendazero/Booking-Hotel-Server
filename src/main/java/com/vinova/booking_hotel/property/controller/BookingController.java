@@ -28,7 +28,7 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PatchMapping("/user/booking/{bookingId}/cancel")
+    @PutMapping("/user/booking/{bookingId}/cancel")
     public ResponseEntity<Void> cancelBooking(@PathVariable Long bookingId,
                                                             @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
@@ -36,7 +36,7 @@ public class BookingController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @PatchMapping("/owner/booking/{bookingId}/confirm")
+    @PutMapping("/owner/booking/{bookingId}/confirm")
     public ResponseEntity<Void> confirmBooking(@PathVariable Long bookingId,
                                                              @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
