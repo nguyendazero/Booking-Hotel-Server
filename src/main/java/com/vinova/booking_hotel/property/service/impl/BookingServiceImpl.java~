@@ -345,12 +345,12 @@ public class BookingServiceImpl implements BookingService {
                                 null, null, null, null, null, null
                         ),
                         new AccountResponseDto(
-                                booking.getAccount().getId(),
-                                booking.getAccount().getFullName(),
-                                booking.getAccount().getUsername(),
-                                booking.getAccount().getEmail(),
-                                booking.getAccount().getAvatar(),
-                                booking.getAccount().getPhone(),
+                                account.getId(),
+                                account.getFullName(),
+                                account.getUsername(),
+                                account.getEmail(),
+                                account.getAvatar(),
+                                account.getPhone(),
                                 null
                         )
                 )).collect(Collectors.toList());

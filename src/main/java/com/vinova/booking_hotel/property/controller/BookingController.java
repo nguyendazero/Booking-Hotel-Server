@@ -60,7 +60,7 @@ public class BookingController {
 
     @GetMapping("/owner/bookings/hotel/{hotelId}")
     public ResponseEntity<List<BookingResponseDto>> getBookingsByHotelId(@PathVariable Long hotelId,
-                                                                                       @RequestHeader("Authorization") String token) {
+                                                                         @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         List<BookingResponseDto> response = bookingService.getBookingsByHotelId(hotelId, accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -68,7 +68,7 @@ public class BookingController {
 
     @GetMapping("/owner/reservations/hotel/{hotelId}")
     public ResponseEntity<List<BookingResponseDto>> getReservationsByHotelId(@PathVariable Long hotelId,
-                                                                                           @RequestHeader("Authorization") String token) {
+                                                                             @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         List<BookingResponseDto> response = bookingService.getReservationsByHotelId(hotelId, accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(response);
