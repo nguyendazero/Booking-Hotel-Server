@@ -58,7 +58,7 @@ public class HotelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PatchMapping("/owner/hotel/{id}")
+    @PutMapping("/owner/hotel/{id}")
     public ResponseEntity<Void> updateHotel(
                                             @PathVariable Long id,
                                             @ModelAttribute AddHotelRequestDto requestDto,
