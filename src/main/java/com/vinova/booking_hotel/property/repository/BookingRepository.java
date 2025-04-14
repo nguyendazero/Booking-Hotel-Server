@@ -5,6 +5,7 @@ import com.vinova.booking_hotel.common.enums.BookingStatus;
 import com.vinova.booking_hotel.property.model.Booking;
 import com.vinova.booking_hotel.property.model.Hotel;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,4 +35,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByAccount(Account account);
 
     List<Booking> findByHotel(Hotel hotel);
+
+    @Modifying
+    @Query("DELETE FROM Booking b WHERE b.hotel.id = :hotelId")
+    void deleteBookingsByHotelId(@Param("hotelId") Long hotelId);
 }

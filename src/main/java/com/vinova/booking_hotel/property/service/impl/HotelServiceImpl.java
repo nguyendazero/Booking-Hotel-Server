@@ -41,6 +41,9 @@ public class HotelServiceImpl implements HotelService {
     private final RatingRepository ratingRepository;
     private final ImageRepository imageRepository;
     private final BookingRepository bookingRepository;
+    private final HotelDiscountRepository hotelDiscountRepository;
+    private final HotelAmenityRepository hotelAmenityRepository;
+    private final WishListRepository wishListRepository;
 
     @Override
     public List<HotelResponseDto> hotels(Long accountId, Long districtId, String name,
@@ -383,16 +386,26 @@ public class HotelServiceImpl implements HotelService {
     @Transactional
     public Void delete(Long id, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account"));
 
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
 
+        // Kiểm tra quyền xóa
         if (!account.getId().equals(hotel.getAccount().getId())) {
             throw new RuntimeException("You do not have permission to delete this hotel");
         }
-        
+
+        // Xóa tất cả các thực thể liên quan
+        bookingRepository.deleteBookingsByHotelId(id);
+        hotelDiscountRepository.deleteDiscountsByHotelId(id);
+        wishListRepository.deleteWishListsByHotelId(id);
+        hotelAmenityRepository.deleteAmenitiesByHotelId(id);
+        ratingRepository.deleteRatingsByHotelId(id);
+
+        // Cuối cùng, xóa khách sạn
         hotelRepository.deleteHotelById(hotel.getId());
 
         return null;

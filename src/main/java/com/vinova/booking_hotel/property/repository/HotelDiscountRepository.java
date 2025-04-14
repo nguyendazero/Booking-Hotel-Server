@@ -2,6 +2,7 @@ package com.vinova.booking_hotel.property.repository;
 
 import com.vinova.booking_hotel.property.model.HotelDiscount;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,4 +18,8 @@ public interface HotelDiscountRepository extends JpaRepository<HotelDiscount, Lo
     List<HotelDiscount> findByHotelIdAndDateRange(@Param("hotelId") Long hotelId,
                                                   @Param("startDate") ZonedDateTime startDate,
                                                   @Param("endDate") ZonedDateTime endDate);
+
+    @Modifying
+    @Query("DELETE FROM HotelDiscount hd WHERE hd.hotel.id = :hotelId")
+    void deleteDiscountsByHotelId(@Param("hotelId") Long hotelId);
 }
