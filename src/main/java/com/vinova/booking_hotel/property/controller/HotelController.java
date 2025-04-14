@@ -75,9 +75,8 @@ public class HotelController {
     }
     
     @DeleteMapping("/owner/hotel/{id}")
-    public ResponseEntity<Void> delete(
-                                            @PathVariable Long id, 
-                                            @RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, 
+                                       @RequestHeader("Authorization") String token) {
         String accessToken = token.substring(7);
         Void response = hotelService.delete(id, accessToken);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

@@ -378,7 +378,9 @@ public class HotelServiceImpl implements HotelService {
         return null;
     }
 
+
     @Override
+    @Transactional
     public Void delete(Long id, String token) {
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
         Account account = accountRepository.findById(accountId)
@@ -386,13 +388,14 @@ public class HotelServiceImpl implements HotelService {
 
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel"));
-        if (Objects.equals(account.getId(), hotel.getAccount().getId())) {
-            hotelRepository.delete(hotel);
-        }else{
-            throw new RuntimeException("You not have permission to delete this hotel");
+
+        if (!account.getId().equals(hotel.getAccount().getId())) {
+            throw new RuntimeException("You do not have permission to delete this hotel");
         }
         
-        return  null;
+        hotelRepository.deleteHotelById(hotel.getId());
+
+        return null;
     }
 
     @Override
