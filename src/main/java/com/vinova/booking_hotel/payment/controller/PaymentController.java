@@ -46,7 +46,7 @@ public class PaymentController {
             bookingRepository.save(booking);
 
             // Thực hiện chuyển hướng đến trang thành công
-            response.sendRedirect("http://localhost:5173/booking-success");
+            response.sendRedirect("http://localhost:5173/user/booking-success");
         } catch (Exception e) {
             response.sendRedirect("http://localhost:5173/error-page");
         }
