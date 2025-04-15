@@ -79,5 +79,12 @@ public class BookingController {
         List<BookingResponseDto> response = bookingService.getAllBooking();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/owner/statistic")
+    public ResponseEntity<List<BookingResponseDto>> getStatistic(@RequestHeader("Authorization") String token) {
+        String accessToken = token.substring(7);
+        List<BookingResponseDto> response = bookingService.getStatisticForOwner(accessToken);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
     
 }

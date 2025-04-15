@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -439,6 +440,56 @@ public class BookingServiceImpl implements BookingService {
                         ),
                         new AccountResponseDto(
                                 booking.getAccount().getId(),
+                                booking.getAccount().getFullName(),
+                                booking.getAccount().getUsername(),
+                                booking.getAccount().getEmail(),
+                                booking.getAccount().getAvatar(),
+                                booking.getAccount().getPhone(),
+                                null
+                        )
+                )).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookingResponseDto> getStatisticForOwner(String token) {
+        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
+        Account ownerAccount = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account"));
+
+        // Lấy tất cả các khách sạn thuộc về tài khoản chủ sở hữu này
+        List<Hotel> ownedHotels = ownerAccount.getHotels();
+
+        // Tạo một danh sách để chứa tất cả các booking từ các khách sạn này
+        List<Booking> allBookings = new ArrayList<>();
+
+        // Duyệt qua từng khách sạn và lấy danh sách booking của nó
+        for (Hotel hotel : ownedHotels) {
+            List<Booking> hotelBookings = bookingRepository.findByHotel(hotel);
+            allBookings.addAll(hotelBookings);
+        }
+
+        // Chuyển đổi danh sách Booking thành danh sách BookingResponseDto
+        return allBookings.stream()
+                .map(booking -> new BookingResponseDto(
+                        booking.getId(),
+                        booking.getStartDate(),
+                        booking.getEndDate(),
+                        booking.getTotalPrice(),
+                        booking.getStatus().toString(),
+                        booking.getCreateDt(),
+                        new HotelResponseDto(
+                                booking.getHotel().getId(),
+                                booking.getHotel().getName(),
+                                booking.getHotel().getDescription(),
+                                booking.getHotel().getPricePerDay(),
+                                booking.getHotel().getHighLightImageUrl(),
+                                booking.getHotel().getStreetAddress(),
+                                booking.getHotel().getLatitude(),
+                                booking.getHotel().getLongitude(),
+                                null, null, null, null, null, null
+                        ),
+                        new AccountResponseDto(
+                                booking.getAccount().getId(), // Lấy thông tin account đã đặt phòng
                                 booking.getAccount().getFullName(),
                                 booking.getAccount().getUsername(),
                                 booking.getAccount().getEmail(),

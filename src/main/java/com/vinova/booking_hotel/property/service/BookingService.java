@@ -23,5 +23,6 @@ public interface BookingService {
     List<BookingResponseDto> getReservationsByHotelId(Long hotelId,String token);
 
     List<BookingResponseDto> getAllBooking();
-        
+
+    List<BookingResponseDto> getStatisticForOwner(String token);
 }
