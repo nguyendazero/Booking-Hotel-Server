@@ -112,9 +112,15 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/admin/unblock-account/{id}")
+    @PutMapping("/admin/block-account/{id}")
+    public ResponseEntity<String> blockAccount(@PathVariable Long id, @RequestBody BlockAccountRequest request) {
+        String response = accountService.blockAccount(id, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
+    }
+
+    @PutMapping("/admin/unblock-account/{id}")
     public ResponseEntity<String> unBlockAccount(@PathVariable Long id) {
-        String response = accountService.UnBlockAccount(id);
+        String response = accountService.unBlockAccount(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
 

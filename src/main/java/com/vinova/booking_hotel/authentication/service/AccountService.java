@@ -24,8 +24,10 @@ public interface AccountService {
     String resetPassword(ResetPasswordRequest request);
 
     String changePassword(ChangePasswordRequest request, String token);
+
+    String blockAccount(Long id, BlockAccountRequest request);
     
-    String UnBlockAccount(Long id);
+    String unBlockAccount(Long id);
 
     AccountResponseDto updateAccountInfo(UpdateInfoRequest request, String token);
 

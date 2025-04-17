@@ -469,7 +469,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public String UnBlockAccount(Long id) {
+    public String blockAccount(Long id, BlockAccountRequest request) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("account"));
+        
+        account.setBlockReason(request.getReason());
+        accountRepository.save(account);
+
+        return "Account has been blocked successfully.";
+    }
+
+    @Override
+    public String unBlockAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("account"));
         
