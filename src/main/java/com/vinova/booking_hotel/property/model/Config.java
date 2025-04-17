@@ -1,6 +1,5 @@
 package com.vinova.booking_hotel.property.model;
 
-import com.vinova.booking_hotel.authentication.model.Account;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,10 +24,6 @@ public class Config {
 
     @Column(name = "value", nullable = false, columnDefinition = "TEXT")
     private String value;
-
-    @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
 
     @Column(name = "create_dt")
     @CreationTimestamp

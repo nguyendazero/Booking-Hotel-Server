@@ -1,8 +1,5 @@
 package com.vinova.booking_hotel.property.service.impl;
 
-import com.vinova.booking_hotel.authentication.model.Account;
-import com.vinova.booking_hotel.authentication.repository.AccountRepository;
-import com.vinova.booking_hotel.authentication.security.JwtUtils;
 import com.vinova.booking_hotel.common.exception.ResourceNotFoundException;
 import com.vinova.booking_hotel.property.dto.request.AddConfigRequestDto;
 import com.vinova.booking_hotel.property.dto.response.ConfigResponseDto;
@@ -13,15 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class ConfigServiceImpl implements ConfigService {
 
     private final ConfigRepository configRepository;
-    private final AccountRepository accountRepository;
-    private final JwtUtils jwtUtils;
 
     @Override
     public List<ConfigResponseDto> configs() {
@@ -33,68 +27,25 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public List<ConfigResponseDto> configsByToken(String token) {
-        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account"));
-
-        List<Config> configs = configRepository.findByAccount(account);
-
-        return configs.stream()
-                .map(config -> new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()))
-                .toList();
-    }
-
-    @Override
-    public List<ConfigResponseDto> configsByAccountId(Long accountId) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account"));
-
-        List<Config> configs = configRepository.findByAccount(account);
-
-        return configs.stream()
-                .map(config -> new ConfigResponseDto(config.getId(), config.getKey(), config.getValue()))
-                .toList();
-    }
-
-    @Override
-    public ConfigResponseDto config(Long id) {
-        Config config = configRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
-
-        return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
-    }
-
-    @Override
-    public ConfigResponseDto create(AddConfigRequestDto requestDto, String token) {
+    public ConfigResponseDto create(AddConfigRequestDto requestDto) {
         Config config = new Config();
         config.setKey(requestDto.getKey());
         config.setValue(requestDto.getValue());
-        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account"));
-        config.setAccount(account);
         configRepository.save(config);
 
         return new ConfigResponseDto(config.getId(), config.getKey(), config.getValue());
     }
 
     @Override
-    public ConfigResponseDto update(Long id, AddConfigRequestDto requestDto, String token) {
+    public ConfigResponseDto update(Long id, AddConfigRequestDto requestDto) {
         Config config = configRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
-        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account"));
-        if (Objects.equals(account.getId(), config.getAccount().getId())) {
-            if (requestDto.getKey() != null) {
-                config.setKey(requestDto.getKey());
-            }
-            if (requestDto.getValue() != null) {
-                config.setValue(requestDto.getValue());
-            }
-        }else{
-            throw new RuntimeException("You not have permission to update this config");
+
+        if (requestDto.getKey() != null) {
+            config.setKey(requestDto.getKey());
+        }
+        if (requestDto.getValue() != null) {
+            config.setValue(requestDto.getValue());
         }
         configRepository.save(config);
 
@@ -102,18 +53,13 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
-    public Void delete(Long id, String token) {
+    public Void delete(Long id) {
         Config config = configRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Configuration"));
-        Long accountId = jwtUtils.getUserIdFromJwtToken(token);
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ResourceNotFoundException("Account"));
-        if (Objects.equals(account.getId(), config.getAccount().getId())) {
-            configRepository.delete(config);
-        }else{
-            throw new RuntimeException("You not have permission to delete this config");
-        }
-        
+        configRepository.delete(config);
+
         return null;
     }
+
+
 }

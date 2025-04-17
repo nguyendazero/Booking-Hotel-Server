@@ -25,19 +25,19 @@ public class ConfigController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PostMapping("/admin/config")
+    @PostMapping("/user/config")
     public ResponseEntity<ConfigResponseDto> create(@RequestBody AddConfigRequestDto requestDto) {
         ConfigResponseDto response = configService.create(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/admin/config/{id}")
+    @PutMapping("/user/config/{id}")
     public ResponseEntity<ConfigResponseDto> update(@PathVariable Long id, @RequestBody AddConfigRequestDto requestDto) {
         ConfigResponseDto response = configService.update(id, requestDto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @DeleteMapping("/admin/config/{id}")
+    @DeleteMapping("/user/config/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         Void response = configService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

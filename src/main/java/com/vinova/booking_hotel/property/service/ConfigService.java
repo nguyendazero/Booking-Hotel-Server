@@ -8,16 +8,10 @@ import java.util.List;
 public interface ConfigService {
     
     List<ConfigResponseDto> configs();
-
-    List<ConfigResponseDto> configsByToken(String token);
-
-    List<ConfigResponseDto> configsByAccountId(Long accountId);
     
-    ConfigResponseDto config(Long id);
+    ConfigResponseDto create(AddConfigRequestDto requestDto);
     
-    ConfigResponseDto create(AddConfigRequestDto requestDto, String token);
+    ConfigResponseDto update(Long id, AddConfigRequestDto requestDto);
     
-    ConfigResponseDto update(Long id, AddConfigRequestDto requestDto, String token);
-    
-    Void delete(Long id, String token);
+    Void delete(Long id);
 }
