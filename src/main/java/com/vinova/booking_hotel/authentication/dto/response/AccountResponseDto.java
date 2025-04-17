@@ -13,5 +13,6 @@ public class AccountResponseDto {
     private String email;
     private String avatar;
     private String phone;
+    private String blockReason;
     private List<String> roles;
 }

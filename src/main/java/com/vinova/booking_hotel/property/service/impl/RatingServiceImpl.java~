@@ -60,7 +60,6 @@ public class RatingServiceImpl implements RatingService {
                                     rating.getAccount().getEmail(),
                                     rating.getAccount().getAvatar(),
                                     rating.getAccount().getPhone(),
-                                    rating.getAccount().getBlockReason(),
                                     null
                             )
                     );
@@ -96,7 +95,6 @@ public class RatingServiceImpl implements RatingService {
                         rating.getAccount().getEmail(),
                         rating.getAccount().getAvatar(),
                         rating.getAccount().getPhone(),
-                        rating.getAccount().getBlockReason(),
                         null
                 )
         );
@@ -172,7 +170,6 @@ public class RatingServiceImpl implements RatingService {
                         account.getEmail(),
                         account.getAvatar(),
                         account.getPhone(),
-                        account.getBlockReason(),
                         null
                 )
         );

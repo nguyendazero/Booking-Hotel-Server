@@ -123,6 +123,7 @@ public class BookingServiceImpl implements BookingService {
                         account.getEmail(),
                         account.getAvatar(),
                         account.getPhone(),
+                        account.getBlockReason(),
                         null
                 )
         ));
@@ -256,6 +257,7 @@ public class BookingServiceImpl implements BookingService {
                                 account.getEmail(),
                                 account.getAvatar(),
                                 account.getPhone(),
+                                account.getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());
@@ -300,6 +302,7 @@ public class BookingServiceImpl implements BookingService {
                                 account.getEmail(),
                                 account.getAvatar(),
                                 account.getPhone(),
+                                account.getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());
@@ -352,6 +355,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getAccount().getEmail(),
                                 booking.getAccount().getAvatar(),
                                 booking.getAccount().getPhone(),
+                                booking.getAccount().getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());
@@ -407,6 +411,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getAccount().getEmail(),
                                 booking.getAccount().getAvatar(),
                                 booking.getAccount().getPhone(),
+                                booking.getAccount().getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());
@@ -445,6 +450,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getAccount().getEmail(),
                                 booking.getAccount().getAvatar(),
                                 booking.getAccount().getPhone(),
+                                booking.getAccount().getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());
@@ -495,6 +501,7 @@ public class BookingServiceImpl implements BookingService {
                                 booking.getAccount().getEmail(),
                                 booking.getAccount().getAvatar(),
                                 booking.getAccount().getPhone(),
+                                booking.getAccount().getBlockReason(),
                                 null
                         )
                 )).collect(Collectors.toList());

@@ -132,6 +132,7 @@ public class HotelServiceImpl implements HotelService {
                     owner.getEmail(),
                     owner.getAvatar(),
                     owner.getPhone(),
+                    owner.getBlockReason(),
                     null
             );
 
@@ -197,6 +198,7 @@ public class HotelServiceImpl implements HotelService {
                     owner.getEmail(),
                     owner.getAvatar(),
                     owner.getPhone(),
+                    owner.getBlockReason(),
                     null
             );
 
@@ -259,6 +261,7 @@ public class HotelServiceImpl implements HotelService {
                 owner.getEmail(),
                 owner.getAvatar(),
                 owner.getPhone(),
+                owner.getBlockReason(),
                 null
         );
 
@@ -296,6 +299,7 @@ public class HotelServiceImpl implements HotelService {
                 owner.getEmail(),
                 owner.getAvatar(),
                 owner.getPhone(),
+                owner.getBlockReason(),
                 null
         );
         

@@ -146,6 +146,7 @@ public class AccountServiceImpl implements AccountService {
                     account.getEmail(),
                     account.getAvatar(),
                     account.getPhone(),
+                    account.getBlockReason(),
                     roles
             );
 
@@ -531,6 +532,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getEmail(),
                 account.getAvatar(),
                 account.getPhone(),
+                account.getBlockReason(),
                 roles
         );
     }
@@ -558,6 +560,7 @@ public class AccountServiceImpl implements AccountService {
                 account.getEmail(),
                 account.getAvatar(),
                 account.getPhone(),
+                account.getBlockReason(),
                 roles
         );
     }
@@ -620,6 +623,7 @@ public class AccountServiceImpl implements AccountService {
                 newAccount.getEmail(),
                 newAccount.getAvatar(),
                 newAccount.getPhone(),
+                account.getBlockReason(),
                 newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
         );
     }
@@ -674,6 +678,7 @@ public class AccountServiceImpl implements AccountService {
                 newAccount.getEmail(),
                 newAccount.getAvatar(),
                 newAccount.getPhone(),
+                account.getBlockReason(),
                 newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
         );
     }
