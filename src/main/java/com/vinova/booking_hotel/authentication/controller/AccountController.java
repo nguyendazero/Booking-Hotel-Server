@@ -54,7 +54,7 @@ public class AccountController {
             @RequestParam(required = false) String role,
             @RequestParam(required = false) Boolean isBlocked,
             @RequestParam(defaultValue = "0") int pageIndex,
-            @RequestParam(defaultValue = "5") int pageSize,
+            @RequestParam(defaultValue = "8") int pageSize,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortOrder) {
         List<AccountResponseDto> response = accountService.accounts(fullName, role, isBlocked, pageIndex, pageSize, sortBy, sortOrder);
