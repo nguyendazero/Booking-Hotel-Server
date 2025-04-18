@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecificationExecutor<Hotel> {
 
-    @Query("SELECT AVG(r.stars) FROM Rating r WHERE r.hotel.id = :hotelId")
+    @Query("SELECT COALESCE(AVG(r.stars), 0.0) FROM Rating r WHERE r.hotel.id = :hotelId")
     Double findAverageRatingByHotelId(@Param("hotelId") Long hotelId);
 
     @Transactional

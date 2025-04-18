@@ -65,12 +65,20 @@ public class HotelServiceImpl implements HotelService {
                 .and(HotelSpecification.hasAmenityNames(amenityNames))
                 .and(HotelSpecification.isAvailableBetween(startDate, endDate));
 
-        Sort sort = Sort.by(sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
-        Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+        List<Hotel> filteredHotels;
+        boolean sortByRatings = "ratings".equalsIgnoreCase(sortBy);
 
-        Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
+        if (sortByRatings) {
+            filteredHotels = hotelRepository.findAll(spec); // Không phân trang
+        } else {
+            Sort sort = Sort.by(sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
+            Pageable pageable = PageRequest.of(pageIndex, pageSize, sort);
+            Page<Hotel> hotelPage = hotelRepository.findAll(spec, pageable);
+            filteredHotels = hotelPage.getContent();
+        }
 
-        List<Hotel> filteredHotels = hotelPage.getContent().stream()
+        // Lọc lại theo amenityNames (nếu có)
+        filteredHotels = filteredHotels.stream()
                 .filter(hotel -> {
                     if (amenityNames == null) return true;
                     long count = hotel.getHotelAmenities().stream()
@@ -80,6 +88,7 @@ public class HotelServiceImpl implements HotelService {
                 })
                 .collect(Collectors.toList());
 
+        // Tính rating và số lượt đánh giá
         Map<Long, Double> averageRatings = new HashMap<>();
         Map<Long, Long> reviewCounts = new HashMap<>();
 
@@ -90,41 +99,39 @@ public class HotelServiceImpl implements HotelService {
             reviewCounts.put(hotel.getId(), reviewCount);
         }
 
-        if (sortBy != null) {
-            Sort.Direction direction = sortOrder.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-
-            if ("rating".equalsIgnoreCase(sortBy)) {
-                filteredHotels.sort((h1, h2) -> {
-                    Double rating1 = averageRatings.get(h1.getId());
-                    Double rating2 = averageRatings.get(h2.getId());
-                    return (rating1 == null ? 0 : rating1.compareTo(rating2)) * (direction == Sort.Direction.ASC ? 1 : -1);
-                });
-            } else if ("pricePerDay".equalsIgnoreCase(sortBy)) {
-                filteredHotels.sort((h1, h2) -> {
-                    int comparison = h1.getPricePerDay().compareTo(h2.getPricePerDay());
-                    return direction == Sort.Direction.ASC ? comparison : -comparison;
-                });
-            } else if ("id".equalsIgnoreCase(sortBy)) {
-                filteredHotels.sort((h1, h2) -> {
-                    int comparison = h1.getId().compareTo(h2.getId());
-                    return direction == Sort.Direction.ASC ? comparison : -comparison;
-                });
+        // Nếu cần sort theo ratings, sort sau khi đã có ratings
+        if (sortByRatings) {
+            Comparator<Hotel> comparator = Comparator.comparing(
+                    h -> Optional.ofNullable(averageRatings.get(h.getId())).orElse(0.0)
+            );
+            if ("desc".equalsIgnoreCase(sortOrder)) {
+                comparator = comparator.reversed();
             }
+            filteredHotels.sort(comparator);
+
+            // Thực hiện phân trang thủ công
+            int fromIndex = Math.min(pageIndex * pageSize, filteredHotels.size());
+            int toIndex = Math.min(fromIndex + pageSize, filteredHotels.size());
+            filteredHotels = filteredHotels.subList(fromIndex, toIndex);
         }
 
+        // Mapping sang DTO
         return filteredHotels.stream().map(hotel -> {
             DiscountResponseDto discountResponseDto = hotel.getHotelDiscounts().stream()
                     .findFirst()
-                    .map(hotelDiscount -> new DiscountResponseDto(hotelDiscount.getDiscount().getId(), hotelDiscount.getDiscount().getRate()))
+                    .map(hotelDiscount -> new DiscountResponseDto(
+                            hotelDiscount.getDiscount().getId(),
+                            hotelDiscount.getDiscount().getRate()))
                     .orElse(null);
 
             List<Image> images = imageRepository.findByEntityIdAndEntityType(hotel.getId(), EntityType.HOTEL);
             List<ImageResponseDto> imageResponses = images.stream()
                     .map(image -> new ImageResponseDto(image.getId(), image.getImageUrl()))
                     .toList();
-            
+
             Account owner = accountRepository.findById(hotel.getAccount().getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Account"));
+
             AccountResponseDto accountResponseDto = new AccountResponseDto(
                     owner.getId(),
                     owner.getFullName(),
@@ -145,8 +152,8 @@ public class HotelServiceImpl implements HotelService {
                     hotel.getStreetAddress(),
                     hotel.getLatitude(),
                     hotel.getLongitude(),
-                    averageRatings.get(hotel.getId()) != null ? averageRatings.get(hotel.getId()) : 0.0,
-                    reviewCounts.get(hotel.getId()) != null ? reviewCounts.get(hotel.getId()) : 0L,
+                    Optional.ofNullable(averageRatings.get(hotel.getId())).orElse(0.0),
+                    Optional.ofNullable(reviewCounts.get(hotel.getId())).orElse(0L),
                     discountResponseDto,
                     accountResponseDto,
                     imageResponses,
@@ -154,6 +161,7 @@ public class HotelServiceImpl implements HotelService {
             );
         }).toList();
     }
+
 
 
     @Override
@@ -178,6 +186,7 @@ public class HotelServiceImpl implements HotelService {
 
         for (Hotel hotel : hotels) {
             Double averageRating = hotelRepository.findAverageRatingByHotelId(hotel.getId());
+            System.out.println("Hotel ID: " + hotel.getId() + ", averageRating: " + averageRating);
             Long reviewCount = ratingRepository.countByHotel(hotel);
             averageRatings.put(hotel.getId(), averageRating);
             reviewCounts.put(hotel.getId(), reviewCount);
