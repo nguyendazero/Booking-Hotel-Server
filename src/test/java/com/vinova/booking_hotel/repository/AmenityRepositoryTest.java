@@ -1,0 +1,147 @@
+package com.vinova.booking_hotel.repository;
+
+import com.vinova.booking_hotel.authentication.model.Account;
+import com.vinova.booking_hotel.authentication.repository.AccountRepository;
+import com.vinova.booking_hotel.property.model.Amenity;
+import com.vinova.booking_hotel.property.model.District;
+import com.vinova.booking_hotel.property.model.Hotel;
+import com.vinova.booking_hotel.property.model.HotelAmenity;
+import com.vinova.booking_hotel.property.repository.AmenityRepository;
+import com.vinova.booking_hotel.property.repository.DistrictRepository;
+import com.vinova.booking_hotel.property.repository.HotelAmenityRepository;
+import com.vinova.booking_hotel.property.repository.HotelRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+public class AmenityRepositoryTest {
+
+    @Autowired
+    private AmenityRepository amenityRepository;
+
+    @Autowired
+    private HotelRepository hotelRepository;
+
+    @Autowired
+    private HotelAmenityRepository hotelAmenityRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
+    private DistrictRepository districtRepository;
+
+    @BeforeEach
+    public void setUp() {
+        amenityRepository.deleteAll(); // Đảm bảo cơ sở dữ liệu sạch sẽ
+        hotelRepository.deleteAll();
+        hotelAmenityRepository.deleteAll();
+    }
+
+    @Test
+    public void testFindByName_WhenAmenityExists() {
+        Amenity amenity = new Amenity();
+        amenity.setName("Free WiFi");
+        amenityRepository.save(amenity);
+
+        Amenity foundAmenity = amenityRepository.findByName("Free WiFi");
+
+        assertThat(foundAmenity).isNotNull();
+        assertThat(foundAmenity.getName()).isEqualTo("Free WiFi");
+    }
+
+    @Test
+    public void testFindByName_WhenAmenityDoesNotExist() {
+        Amenity foundAmenity = amenityRepository.findByName("Nonexistent Amenity");
+        assertThat(foundAmenity).isNull();
+    }
+
+    @Test
+    public void testFindAmenitiesByHotelId_WhenAmenitiesExist() {
+        // Tạo một Account và gán các trường bắt buộc
+        Account account = new Account();
+        account.setFullName("Test Account");
+        account.setEmail("test@example.com");
+        account.setUsername("testuser");
+        // Lưu account vào cơ sở dữ liệu
+        accountRepository.save(account);
+
+        // Tạo một District
+        District district = new District();
+        district.setName("Test District");
+        // Lưu district vào cơ sở dữ liệu
+        districtRepository.save(district);
+
+        // Tạo Hotel và gán account_id và district_id
+        Hotel hotel = new Hotel();
+        hotel.setName("Test Hotel");
+        hotel.setAccount(account); // Gán account
+        hotel.setDistrict(district); // Gán district
+        hotelRepository.save(hotel);
+
+        // Tạo và lưu Amenities
+        Amenity amenity1 = new Amenity();
+        amenity1.setName("Free WiFi");
+        amenityRepository.save(amenity1);
+
+        Amenity amenity2 = new Amenity();
+        amenity2.setName("Pool");
+        amenityRepository.save(amenity2);
+
+        // Lưu mối quan hệ giữa hotel và amenities
+        HotelAmenity hotelAmenity1 = new HotelAmenity();
+        hotelAmenity1.setHotel(hotel);
+        hotelAmenity1.setAmenity(amenity1);
+        hotelAmenityRepository.save(hotelAmenity1);
+
+        HotelAmenity hotelAmenity2 = new HotelAmenity();
+        hotelAmenity2.setHotel(hotel);
+        hotelAmenity2.setAmenity(amenity2);
+        hotelAmenityRepository.save(hotelAmenity2);
+
+        // Thực hiện truy vấn
+        List<Amenity> amenities = amenityRepository.findAmenitiesByHotelId(hotel.getId());
+
+        // Xác nhận kết quả
+        assertThat(amenities).isNotEmpty();
+        assertThat(amenities).contains(amenity1, amenity2);
+    }
+
+    @Test
+    public void testFindAmenitiesByHotelId_WhenNoAmenitiesExist() {
+        // Tạo một Account và gán các trường bắt buộc
+        Account account = new Account();
+        account.setFullName("Test Account");
+        account.setEmail("test@example.com");
+        account.setUsername("testuser");
+        // Lưu account vào cơ sở dữ liệu
+        accountRepository.save(account);
+
+        // Tạo một District
+        District district = new District();
+        district.setName("Test District");
+        // Lưu district vào cơ sở dữ liệu
+        districtRepository.save(district);
+
+        // Tạo Hotel và gán account_id và district_id
+        Hotel hotel = new Hotel();
+        hotel.setName("Test Hotel");
+        hotel.setAccount(account); // Gán account
+        hotel.setDistrict(district); // Gán district
+        hotelRepository.save(hotel);
+
+        // Thực hiện truy vấn với hotel chưa có tiện nghi
+        List<Amenity> amenities = amenityRepository.findAmenitiesByHotelId(hotel.getId());
+
+        // Xác nhận kết quả
+        assertThat(amenities).isEmpty();
+    }
+}
