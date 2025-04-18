@@ -189,7 +189,7 @@
 				<version>3.4.2</version>
 				<configuration>
 					<to>
-						<image>nguyenda0702/${project.artifactId}:s2</image>
+						<image>nguyenda0702/${project.artifactId}:s3</image>
 					</to>
 				</configuration>
 			</plugin>
