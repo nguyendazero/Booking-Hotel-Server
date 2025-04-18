@@ -26,7 +26,7 @@ services:
       retries: 10
 
   booking-hotel:
-    image: "nguyenda0702/booking-hotel:s2"
+    image: "nguyenda0702/booking-hotel:s3"
     container_name: server-booking-hotel
     ports:
       - "8080:8080"
