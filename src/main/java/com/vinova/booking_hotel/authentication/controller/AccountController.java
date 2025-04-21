@@ -62,7 +62,7 @@ public class AccountController {
     }
 
     @PostMapping("/public/sign-up")
-    public ResponseEntity<String> signUp(@RequestBody @Valid SignUpRequest accountRequest) {
+    public ResponseEntity<String> signUp(@RequestBody @Valid SignUpRequestDto accountRequest) {
         String response = accountService.signUp(accountRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -74,7 +74,7 @@ public class AccountController {
     }
 
     @PostMapping("/public/sign-in")
-    public ResponseEntity<SignInResponseDto> signIn(@RequestBody SignInRequest request, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<SignInResponseDto> signIn(@RequestBody SignInRequestDto request, HttpServletResponse httpServletResponse) {
         SignInResponseDto response = accountService.signIn(request, httpServletResponse);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -93,27 +93,27 @@ public class AccountController {
     }
 
     @PostMapping("/public/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest requestDto) {
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequestDto requestDto) {
         String response = accountService.sendVerificationForPasswordReset(requestDto.getEmailOrUsername());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/public/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetPasswordRequestDto request) {
         String response = accountService.resetPassword(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("/user/change-password")
     public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token,
-                                               @RequestBody @Valid ChangePasswordRequest request) {
+                                               @RequestBody @Valid ChangePasswordRequestDto request) {
         String accessToken = token.substring(7);
         String response = accountService.changePassword(request, accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("/admin/block-account/{id}")
-    public ResponseEntity<String> blockAccount(@PathVariable Long id, @RequestBody BlockAccountRequest request) {
+    public ResponseEntity<String> blockAccount(@PathVariable Long id, @RequestBody BlockAccountRequestDto request) {
         String response = accountService.blockAccount(id, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(response);
     }
@@ -126,7 +126,7 @@ public class AccountController {
 
     @PutMapping("/user/update-info")
     public ResponseEntity<AccountResponseDto> updateAccountInfo(@RequestHeader("Authorization") String token,
-                                               @ModelAttribute @Valid UpdateInfoRequest request) {
+                                               @ModelAttribute @Valid UpdateInfoRequestDto request) {
         String accessToken = token.substring(7);
         AccountResponseDto response = accountService.updateAccountInfo(request, accessToken);
         return ResponseEntity.status(HttpStatus.OK).body(response);

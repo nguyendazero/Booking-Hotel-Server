@@ -67,8 +67,8 @@ public class AccountControllerTest {
 
     @Test
     void signUp_shouldReturnCreatedAndSuccessMessage() {
-        SignUpRequest request = new SignUpRequest(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
-        when(accountService.signUp(any(SignUpRequest.class))).thenReturn("Account created successfully. Verification code sent.");
+        SignUpRequestDto request = new SignUpRequestDto(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
+        when(accountService.signUp(any(SignUpRequestDto.class))).thenReturn("Account created successfully. Verification code sent.");
 
         ResponseEntity<String> response = accountController.signUp(request);
 
@@ -88,9 +88,9 @@ public class AccountControllerTest {
 
     @Test
     void signIn_shouldReturnOkAndSignInResponseDto() {
-        SignInRequest request = new SignInRequest(TEST_USERNAME, TEST_PASSWORD);
+        SignInRequestDto request = new SignInRequestDto(TEST_USERNAME, TEST_PASSWORD);
         SignInResponseDto responseDto = new SignInResponseDto(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        when(accountService.signIn(any(SignInRequest.class), eq(httpServletResponse))).thenReturn(responseDto);
+        when(accountService.signIn(any(SignInRequestDto.class), eq(httpServletResponse))).thenReturn(responseDto);
 
         ResponseEntity<SignInResponseDto> response = accountController.signIn(request, httpServletResponse);
 
@@ -121,7 +121,7 @@ public class AccountControllerTest {
 
     @Test
     void forgotPassword_shouldReturnOkAndSuccessMessage() {
-        ForgotPasswordRequest request = new ForgotPasswordRequest();
+        ForgotPasswordRequestDto request = new ForgotPasswordRequestDto();
         request.setEmailOrUsername(TEST_EMAIL);
         when(accountService.sendVerificationForPasswordReset(TEST_EMAIL)).thenReturn("Verification code sent to your email.");
 
@@ -133,8 +133,8 @@ public class AccountControllerTest {
 
     @Test
     void resetPassword_shouldReturnOkAndSuccessMessage() {
-        ResetPasswordRequest request = new ResetPasswordRequest(TEST_EMAIL, "123456", "newPassword", "newPassword");
-        when(accountService.resetPassword(any(ResetPasswordRequest.class))).thenReturn("Password has been reset successfully.");
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(TEST_EMAIL, "123456", "newPassword", "newPassword");
+        when(accountService.resetPassword(any(ResetPasswordRequestDto.class))).thenReturn("Password has been reset successfully.");
 
         ResponseEntity<String> response = accountController.resetPassword(request);
 
@@ -144,8 +144,8 @@ public class AccountControllerTest {
 
     @Test
     void changePassword_shouldReturnOkAndSuccessMessage() {
-        ChangePasswordRequest request = new ChangePasswordRequest("oldPassword", "newPassword", "newPassword");
-        when(accountService.changePassword(any(ChangePasswordRequest.class), eq(TEST_ACCESS_TOKEN))).thenReturn("Password has been changed successfully.");
+        ChangePasswordRequestDto request = new ChangePasswordRequestDto("oldPassword", "newPassword", "newPassword");
+        when(accountService.changePassword(any(ChangePasswordRequestDto.class), eq(TEST_ACCESS_TOKEN))).thenReturn("Password has been changed successfully.");
 
         ResponseEntity<String> response = accountController.changePassword(TEST_TOKEN, request);
 
@@ -155,7 +155,7 @@ public class AccountControllerTest {
 
     @Test
     void blockAccount_shouldReturnNoContent() {
-        BlockAccountRequest request = new BlockAccountRequest("blocking reason");
+        BlockAccountRequestDto request = new BlockAccountRequestDto("blocking reason");
         when(accountService.blockAccount(TEST_ACCOUNT_ID, request)).thenReturn("Account has been blocked successfully.");
 
         ResponseEntity<String> response = accountController.blockAccount(TEST_ACCOUNT_ID, request);
@@ -175,10 +175,10 @@ public class AccountControllerTest {
     @Test
     void updateAccountInfo_shouldReturnOkAndAccountResponseDto() {
         AccountResponseDto responseDto = new AccountResponseDto(TEST_ACCOUNT_ID, "New Name", TEST_USERNAME, TEST_EMAIL, "newAvatarUrl", "123456789", null, List.of(TEST_ROLE_USER));
-        when(accountService.updateAccountInfo(any(UpdateInfoRequest.class), eq(TEST_ACCESS_TOKEN))).thenReturn(responseDto);
+        when(accountService.updateAccountInfo(any(UpdateInfoRequestDto.class), eq(TEST_ACCESS_TOKEN))).thenReturn(responseDto);
 
         MockMultipartFile avatarFile = new MockMultipartFile("avatar", "avatar.jpg", MediaType.IMAGE_JPEG_VALUE, "some image".getBytes());
-        UpdateInfoRequest request = new UpdateInfoRequest("New Name", "123456789", avatarFile);
+        UpdateInfoRequestDto request = new UpdateInfoRequestDto("New Name", "123456789", avatarFile);
 
         ResponseEntity<AccountResponseDto> response = accountController.updateAccountInfo(TEST_TOKEN, request);
 

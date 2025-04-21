@@ -11,9 +11,9 @@ public interface AccountService {
 
     List<AccountResponseDto> accounts(String fullName, String role, Boolean isBlocked, int pageIndex, int pageSize, String sortBy, String sortOrder);
 
-    SignInResponseDto signIn(SignInRequest request, HttpServletResponse httpServletResponse);
+    SignInResponseDto signIn(SignInRequestDto request, HttpServletResponse httpServletResponse);
 
-    String signUp(SignUpRequest request);
+    String signUp(SignUpRequestDto request);
 
     String resendVerificationCode(String email);
 
@@ -21,15 +21,15 @@ public interface AccountService {
 
     String sendVerificationForPasswordReset(String emailOrUsername);
 
-    String resetPassword(ResetPasswordRequest request);
+    String resetPassword(ResetPasswordRequestDto request);
 
-    String changePassword(ChangePasswordRequest request, String token);
+    String changePassword(ChangePasswordRequestDto request, String token);
 
-    String blockAccount(Long id, BlockAccountRequest request);
+    String blockAccount(Long id, BlockAccountRequestDto request);
     
     String unBlockAccount(Long id);
 
-    AccountResponseDto updateAccountInfo(UpdateInfoRequest request, String token);
+    AccountResponseDto updateAccountInfo(UpdateInfoRequestDto request, String token);
 
     AccountResponseDto getAccountByToken(String token);
 

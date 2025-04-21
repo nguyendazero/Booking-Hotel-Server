@@ -158,7 +158,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public SignInResponseDto signIn(SignInRequest request, HttpServletResponse httpServletResponse) {
+    public SignInResponseDto signIn(SignInRequestDto request, HttpServletResponse httpServletResponse) {
         String loginIdentifier = request.getUsernameOrEmail();
 
         // Tìm kiếm tài khoản bằng username hoặc email
@@ -256,7 +256,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Async
     @Override
-    public String signUp(SignUpRequest request) {
+    public String signUp(SignUpRequestDto request) {
 
         // Kiểm tra xem password và rePassword có khớp nhau không
         if (!request.getPassword().equals(request.getRePassword())) {
@@ -413,7 +413,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public String resetPassword(ResetPasswordRequest request) {
+    public String resetPassword(ResetPasswordRequestDto request) {
         
         // Xác thực mã
         VerificationInfo verificationInfo = verificationMap.get(request.getEmail());
@@ -443,7 +443,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public String changePassword(ChangePasswordRequest request, String token) {
+    public String changePassword(ChangePasswordRequestDto request, String token) {
         // Lấy accountId bằng token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 
@@ -470,7 +470,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public String blockAccount(Long id, BlockAccountRequest request) {
+    public String blockAccount(Long id, BlockAccountRequestDto request) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("account"));
         
@@ -492,7 +492,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponseDto updateAccountInfo(UpdateInfoRequest request, String token) {
+    public AccountResponseDto updateAccountInfo(UpdateInfoRequestDto request, String token) {
         // Lấy accountId bằng token
         Long accountId = jwtUtils.getUserIdFromJwtToken(token);
 

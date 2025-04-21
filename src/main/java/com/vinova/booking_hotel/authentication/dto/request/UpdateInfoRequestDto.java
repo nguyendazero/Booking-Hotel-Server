@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateInfoRequest {
+public class UpdateInfoRequestDto {
     
     @ValidFullName
     private String fullName;

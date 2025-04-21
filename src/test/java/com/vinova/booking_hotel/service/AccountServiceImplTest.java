@@ -116,7 +116,7 @@ public class AccountServiceImplTest {
     @Test
     void signIn_shouldReturnSignInResponseDto_whenCredentialsAreValid() {
         // Arrange
-        SignInRequest request = new SignInRequest(TEST_USERNAME, TEST_PASSWORD);
+        SignInRequestDto request = new SignInRequestDto(TEST_USERNAME, TEST_PASSWORD);
         Account mockAccount = new Account(TEST_ACCOUNT_ID, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, null, null, null, LocalDateTime.now(), "testRefreshToken", LocalDateTime.now().plusDays(30), ZonedDateTime.now(), ZonedDateTime.now(), List.of(), null, null, null, null, null); // Đặt sẵn refreshToken đã mock vào mockAccount
         UserDetails userDetails = new User(TEST_USERNAME, ENCODED_PASSWORD, new ArrayList<>());
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, ENCODED_PASSWORD, new ArrayList<>());
@@ -142,7 +142,7 @@ public class AccountServiceImplTest {
     @Test
     void signIn_shouldThrowErrorSignInException_whenUsernameOrEmailNotFound() {
         // Arrange
-        SignInRequest request = new SignInRequest(TEST_USERNAME, TEST_PASSWORD);
+        SignInRequestDto request = new SignInRequestDto(TEST_USERNAME, TEST_PASSWORD);
         when(accountRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
         when(accountRepository.findByEmail(TEST_USERNAME)).thenReturn(Optional.empty());
 
@@ -156,7 +156,7 @@ public class AccountServiceImplTest {
     @Test
     void signUp_shouldCreateAccountAndSendVerificationEmail() {
         // Arrange
-        SignUpRequest request = new SignUpRequest(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
+        SignUpRequestDto request = new SignUpRequestDto(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
         Account mockAccount = new Account(null, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, "unverified_account", null, null, null, null, null, ZonedDateTime.now(), ZonedDateTime.now(), new ArrayList<>(), null, null, new ArrayList<>(), null, null);
         Role userRole = new Role(1L, TEST_ROLE_USER, null, null, new ArrayList<>());
         when(accountRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
@@ -180,7 +180,7 @@ public class AccountServiceImplTest {
     @Test
     void signUp_shouldThrowNotMatchPasswordException_whenPasswordsDoNotMatch() {
         // Arrange
-        SignUpRequest request = new SignUpRequest(TEST_USERNAME, TEST_PASSWORD, "differentPassword", TEST_FULL_NAME, TEST_EMAIL);
+        SignUpRequestDto request = new SignUpRequestDto(TEST_USERNAME, TEST_PASSWORD, "differentPassword", TEST_FULL_NAME, TEST_EMAIL);
 
         // Act & Assert
         assertThrows(NotMatchPasswordException.class, () -> accountService.signUp(request));
@@ -193,7 +193,7 @@ public class AccountServiceImplTest {
     @Test
     void signUp_shouldThrowResourceAlreadyExistsException_whenUsernameExistsAndIsActive() {
         // Arrange
-        SignUpRequest request = new SignUpRequest(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
+        SignUpRequestDto request = new SignUpRequestDto(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
         Account existingAccount = new Account();
         existingAccount.setBlockReason(null);
         when(accountRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(existingAccount));
@@ -209,7 +209,7 @@ public class AccountServiceImplTest {
     @Test
     void signUp_shouldResendVerificationEmail_whenEmailExistsButAccountIsNotActive() {
         // Arrange
-        SignUpRequest request = new SignUpRequest(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
+        SignUpRequestDto request = new SignUpRequestDto(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
         Account existingAccount = new Account();
         existingAccount.setEmail(TEST_EMAIL); // Đảm bảo existingAccount có email
         existingAccount.setBlockReason("unverified_account");
@@ -229,7 +229,7 @@ public class AccountServiceImplTest {
     @Test
     void signUp_shouldThrowResourceAlreadyExistsException_whenEmailExistsAndIsActive() {
         // Arrange
-        SignUpRequest request = new SignUpRequest(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
+        SignUpRequestDto request = new SignUpRequestDto(TEST_FULL_NAME, TEST_USERNAME, TEST_EMAIL, TEST_PASSWORD, TEST_PASSWORD);
         Account existingAccount = new Account();
         existingAccount.setBlockReason(null);
         when(accountRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(existingAccount));
@@ -338,7 +338,7 @@ public class AccountServiceImplTest {
     @Test
     void resetPassword_shouldResetPasswordAndRemoveVerificationInfo_whenCodeIsValid() {
         // Arrange
-        ResetPasswordRequest request = new ResetPasswordRequest(TEST_EMAIL, "validCode", "newPassword", "newPassword");
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(TEST_EMAIL, "validCode", "newPassword", "newPassword");
         Account mockAccount = new Account();
         when(accountRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(mockAccount));
         when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
@@ -373,7 +373,7 @@ public class AccountServiceImplTest {
     @Test
     void resetPassword_shouldThrowInValidVerifyEmailException_whenCodeIsInvalid() {
         // Arrange
-        ResetPasswordRequest request = new ResetPasswordRequest(TEST_EMAIL, "invalidCode", "newPassword", "newPassword");
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(TEST_EMAIL, "invalidCode", "newPassword", "newPassword");
         VerificationInfo verificationInfo = new VerificationInfo("validCode", LocalDateTime.now().minusMinutes(1), TEST_USERNAME, TEST_FULL_NAME);
 
         // Mock verificationMap
@@ -394,7 +394,7 @@ public class AccountServiceImplTest {
     @Test
     void changePassword_shouldChangePassword_whenOldPasswordIsCorrect() {
         // Arrange
-        ChangePasswordRequest request = new ChangePasswordRequest("oldPassword", "newPassword", "newPassword");
+        ChangePasswordRequestDto request = new ChangePasswordRequestDto("oldPassword", "newPassword", "newPassword");
         Account mockAccount = new Account(TEST_ACCOUNT_ID, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, null, null, null, LocalDateTime.now(), null, null, ZonedDateTime.now(), ZonedDateTime.now(), new ArrayList<>(), null, null, null, null, null);
         when(jwtUtils.getUserIdFromJwtToken(TEST_TOKEN)).thenReturn(TEST_ACCOUNT_ID);
         when(accountRepository.findById(TEST_ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
@@ -414,7 +414,7 @@ public class AccountServiceImplTest {
     @Test
     void changePassword_shouldThrowOldPasswordNotMatch_whenOldPasswordIsIncorrect() {
         // Arrange
-        ChangePasswordRequest request = new ChangePasswordRequest("wrongPassword", "newPassword", "newPassword");
+        ChangePasswordRequestDto request = new ChangePasswordRequestDto("wrongPassword", "newPassword", "newPassword");
         Account mockAccount = new Account(TEST_ACCOUNT_ID, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, null, null, null, LocalDateTime.now(), null, null, ZonedDateTime.now(), ZonedDateTime.now(), new ArrayList<>(), null, null, null, null, null);
         when(jwtUtils.getUserIdFromJwtToken(TEST_TOKEN)).thenReturn(TEST_ACCOUNT_ID);
         when(accountRepository.findById(TEST_ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
@@ -428,7 +428,7 @@ public class AccountServiceImplTest {
     @Test
     void changePassword_shouldThrowNotMatchPasswordException_whenNewPasswordsDoNotMatch() {
         // Arrange
-        ChangePasswordRequest request = new ChangePasswordRequest("oldPassword", "newPassword", "differentPassword");
+        ChangePasswordRequestDto request = new ChangePasswordRequestDto("oldPassword", "newPassword", "differentPassword");
         Account mockAccount = new Account(TEST_ACCOUNT_ID, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, null, null, null, LocalDateTime.now(), null, null, ZonedDateTime.now(), ZonedDateTime.now(), new ArrayList<>(), null, null, null, null, null);
         when(jwtUtils.getUserIdFromJwtToken(TEST_TOKEN)).thenReturn(TEST_ACCOUNT_ID);
         when(accountRepository.findById(TEST_ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
@@ -442,7 +442,7 @@ public class AccountServiceImplTest {
     @Test
     void blockAccount_shouldBlockAccountAndSetReason() {
         // Arrange
-        BlockAccountRequest request = new BlockAccountRequest("test reason");
+        BlockAccountRequestDto request = new BlockAccountRequestDto("test reason");
         Account mockAccount = new Account();
         when(accountRepository.findById(TEST_ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
         when(accountRepository.save(any(Account.class))).thenReturn(mockAccount);
@@ -480,7 +480,7 @@ public class AccountServiceImplTest {
         MultipartFile mockAvatarFile = mock(MultipartFile.class);
         when(mockAvatarFile.isEmpty()).thenReturn(false);
 
-        UpdateInfoRequest request = new UpdateInfoRequest("New Name", "123456789", mockAvatarFile); // Truyền mock MultipartFile
+        UpdateInfoRequestDto request = new UpdateInfoRequestDto("New Name", "123456789", mockAvatarFile); // Truyền mock MultipartFile
         Account mockAccount = new Account(TEST_ACCOUNT_ID, TEST_USERNAME, ENCODED_PASSWORD, TEST_EMAIL, TEST_FULL_NAME, null, "0987654321", "oldAvatarUrl", LocalDateTime.now(), null, null, ZonedDateTime.now(), ZonedDateTime.now(), new ArrayList<>(), null, null, new ArrayList<>(), null, null);
         when(jwtUtils.getUserIdFromJwtToken(TEST_TOKEN)).thenReturn(TEST_ACCOUNT_ID);
         when(accountRepository.findById(TEST_ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
