@@ -29,7 +29,6 @@ public class RatingRepositoryTest {
 
     private Hotel testHotel1;
     private Hotel testHotel2;
-    private Account testAccount1;
     private Account testAccount2;
 
     @BeforeEach
@@ -37,7 +36,7 @@ public class RatingRepositoryTest {
         ratingRepository.deleteAll();
         entityManager.clear();
 
-        testAccount1 = new Account();
+        Account testAccount1 = new Account();
         testAccount1.setFullName("Account 1");
         testAccount1.setEmail("account1@example.com");
         testAccount1.setUsername("user1");
