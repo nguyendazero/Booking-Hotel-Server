@@ -21,7 +21,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OwnerRegistrationImpl implements OwnerRegistrationService {
+public class OwnerRegistrationServiceImpl implements OwnerRegistrationService {
     
     private final OwnerRegistrationRepository ownerRegistrationRepository;
     private final JwtUtils jwtUtils;
