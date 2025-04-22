@@ -1,5 +1,6 @@
 package com.vinova.booking_hotel.repository;
 
+import com.vinova.booking_hotel.config.TestPostgreSQLContainerConfig;
 import com.vinova.booking_hotel.property.model.Discount;
 import com.vinova.booking_hotel.property.repository.DiscountRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 
 import java.math.BigDecimal;
 
@@ -14,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestPostgreSQLContainerConfig.class)
 public class DiscountRepositoryTest {
 
     @Autowired

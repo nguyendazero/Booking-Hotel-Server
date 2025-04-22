@@ -4,14 +4,14 @@ import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.model.AccountRole;
 import com.vinova.booking_hotel.authentication.model.Role;
 import com.vinova.booking_hotel.authentication.repository.AccountRepository;
-import com.vinova.booking_hotel.config.TestPostgreSQLContainerConfig;
+import com.vinova.booking_hotel.config.TestPostgreSQLContainerConfig; // Import cấu hình Testcontainers
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Import; // Import annotation cần thiết
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

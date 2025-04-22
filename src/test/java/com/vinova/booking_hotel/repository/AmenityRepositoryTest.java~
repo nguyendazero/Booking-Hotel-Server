@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestPostgreSQLContainerConfig.class)
+@Import(TestPostgreSQLContainerConfig.class) // Thêm annotation @Import
 public class AmenityRepositoryTest {
 
     @Autowired
