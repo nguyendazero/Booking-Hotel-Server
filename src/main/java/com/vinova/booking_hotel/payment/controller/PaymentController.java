@@ -32,6 +32,7 @@ public class PaymentController {
     @GetMapping("/public/payment/success")
     public void success(@RequestParam("session_id") String sessionId, HttpServletResponse response) {
         Stripe.apiKey = secretKey;
+        String frontendBaseURL = "https://nguyendazero.github.io/Booking-Hotel-React";
 
         try {
             // Lấy thông tin session từ Stripe
@@ -46,9 +47,9 @@ public class PaymentController {
             bookingRepository.save(booking);
 
             // Thực hiện chuyển hướng đến trang thành công
-            response.sendRedirect("http://localhost:5173/user/booking-success");
+            response.sendRedirect(frontendBaseURL + "/user/booking-success");
         } catch (Exception e) {
-            response.sendRedirect("http://localhost:5173/error-page");
+            response.sendRedirect(frontendBaseURL + "/error-page");
         }
     }
 
