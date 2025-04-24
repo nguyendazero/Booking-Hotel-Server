@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Cấu hình ứng dụng (thêm vào) ###
+*.properties
