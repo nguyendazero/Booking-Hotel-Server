@@ -14,7 +14,8 @@ public class CorsFilter implements Filter {
 
     private final Set<String> allowedOrigins = new HashSet<>(Arrays.asList(
             "http://localhost:5173",
-            "https://nguyendazero.github.io"
+            "https://nguyendazero.github.io",
+            "http://localhost:8080"
     ));
 
     @Override

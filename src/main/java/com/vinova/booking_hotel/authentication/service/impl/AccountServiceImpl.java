@@ -227,30 +227,30 @@ public class AccountServiceImpl implements AccountService {
         account.setLatestLogin(LocalDateTime.now());
         accountRepository.save(account);
 
-        //Thêm token vào cookie
+        /// Thêm token vào cookie
         Cookie jwtCookie = new Cookie("token", jwtToken);
-        jwtCookie.setHttpOnly(false);
-        jwtCookie.setSecure(false);
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(60 * 60 * 24 * 7);
-        jwtCookie.setAttribute("SameSite", "Strict");
+        jwtCookie.setHttpOnly(true); // Bảo vệ cookies khỏi JavaScript
+        jwtCookie.setSecure(true); // Chỉ gửi cookies qua HTTPS
+        jwtCookie.setPath("/"); // Áp dụng cookies trên toàn bộ domain
+        jwtCookie.setMaxAge(60 * 60 * 24 * 7); // 7 ngày
+        jwtCookie.setAttribute("SameSite", "None"); // Cho phép cross-domain cookies
 
         httpServletResponse.addCookie(jwtCookie);
 
-        //Thêm refresh vào cookie
+        // Thêm refresh token vào cookie
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(false);
-        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
-        refreshTokenCookie.setAttribute("SameSite", "Strict");
+        refreshTokenCookie.setAttribute("SameSite", "None");
 
         httpServletResponse.addCookie(refreshTokenCookie);
 
         // Tạo response với đầy đủ các trường cần thiết
         return new SignInResponseDto(
                 jwtToken,
-                refreshToken  // Đảm bảo sử dụng refreshToken đã được thiết lập
+                refreshToken
         );
     }
 
