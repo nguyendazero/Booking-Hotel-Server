@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class AccountIsBlockException extends RuntimeException {
 
     public AccountIsBlockException(String blockReason) {
-        super("Account is blocked kkkkkkkkkkkkkk, because: " + blockReason);
+        super("Account is blocked ppppppppppppppppppppppp, because: " + blockReason);
     }
 }
 
