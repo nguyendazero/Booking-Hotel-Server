@@ -28,7 +28,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/app-booking-hotel:s1
 
       - name: Trigger Render Deploy Hook
-        uses: actions/http-client@v2
+        uses: actions/http-client
         with:
           url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
           method: POST
