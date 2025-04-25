@@ -37,8 +37,8 @@ public class StripeService {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:8080/api/v1/public/payment/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl("http://localhost:8080/api/v1/public/payment/cancel")
+                .setSuccessUrl("https://booking-hotel-noat.onrender.com/api/v1/public/payment/success?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl("https://booking-hotel-noat.onrender.com/api/v1/public/payment/cancel")
                 .addLineItem(lineItem)
                 .putMetadata("bookingId", bookingId.toString()) // Lưu bookingId vào metadata
                 .build();
