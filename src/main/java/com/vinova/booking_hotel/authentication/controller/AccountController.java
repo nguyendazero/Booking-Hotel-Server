@@ -30,6 +30,9 @@ public class AccountController {
     @Value("${frontend.home.url}") // Thêm biến cấu hình cho URL trang home frontend
     private String frontendHomeUrl;
 
+    @Value("${spring.security.oauth2.client.registration.github.redirect-uri}")
+    private String redirectUriGithub;
+    
     // Github
     @Value("${spring.security.oauth2.client.provider.github.authorization-uri}")
     private String authorizationUri;
@@ -151,12 +154,15 @@ public class AccountController {
 
     @GetMapping("/public/login/github")
     public RedirectView loginWithGithub() {
-        String githubAuthUrl = authorizationUri + "?client_id=" + clientIdGithub + "&scope=" + scope;
+        String githubAuthUrl = authorizationUri + "?client_id=" + clientIdGithub
+                + "&scope=" + scope
+                + "&redirect_uri=" + redirectUriGithub; // Thêm redirect_uri vào URL
         return new RedirectView(githubAuthUrl);
     }
 
     @GetMapping("/public/login/oauth2/code/github")
     public RedirectView oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
+        System.out.println("Callback URL: " + redirectUriGithub); // Log callback URL để kiểm tra
         accountService.handleGithubOAuth(code, httpServletResponse);
         return new RedirectView(frontendHomeUrl);
     }
