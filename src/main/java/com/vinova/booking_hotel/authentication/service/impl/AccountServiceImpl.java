@@ -26,6 +26,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -576,8 +577,8 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponseDto handleGithubOAuth(String code) {
-        // Bước 1: Đổi mã xác thực lấy access token
+    public AccountResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse) {
+        // Bước 1: Đổi mã xác thực lấy access token (giữ nguyên)
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -593,38 +594,95 @@ public class AccountServiceImpl implements AccountService {
 
         String accessToken = (String) Objects.requireNonNull(response.getBody()).get("access_token");
 
-        // Bước 2: Lấy thông tin người dùng
+        // Bước 2: Lấy thông tin người dùng (giữ nguyên)
         headers.setBearerAuth(accessToken);
         ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
                 userInfoUriGithub, HttpMethod.GET, new HttpEntity<>(headers),
                 new ParameterizedTypeReference<>() {}
         );
 
-        // Tạo tài khoản mới
-        Account account = new Account();
-        account.setEmail(Objects.requireNonNull(userResponse.getBody()).get("email").toString());
-        account.setFullName(userResponse.getBody().get("name").toString());
-        account.setAvatar(userResponse.getBody().get("avatar_url").toString());
-        account.setUsername(userResponse.getBody().get("login").toString());
+        String githubEmail = Objects.requireNonNull(userResponse.getBody()).get("email").toString();
+        String githubName = userResponse.getBody().get("name").toString();
+        String githubAvatar = userResponse.getBody().get("avatar_url").toString();
+        String githubUsername = userResponse.getBody().get("login").toString();
 
-        AccountRole accountRole = new AccountRole();
-        accountRole.setAccount(account);
-        accountRole.setRole(roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new ResourceNotFoundException("role")));
-        account.getAccountRoles().add(accountRole);
+        Account account;
 
-        // Lưu tài khoản vào cơ sở dữ liệu
-        Account newAccount = accountRepository.save(account);
+        // Kiểm tra xem tài khoản đã tồn tại dựa trên email
+        Optional<Account> existingAccount = accountRepository.findByEmail(githubEmail);
 
+        if (existingAccount.isPresent()) {
+            // Tài khoản đã tồn tại
+            account = existingAccount.get();
+        } else {
+            // Tài khoản chưa tồn tại, tạo mới
+            account = new Account();
+            account.setEmail(githubEmail);
+            account.setFullName(githubName);
+            account.setAvatar(githubAvatar);
+            account.setUsername(githubUsername); // Có thể cần xử lý trùng username
+
+            AccountRole accountRole = new AccountRole();
+            accountRole.setAccount(account);
+            accountRole.setRole(roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new ResourceNotFoundException("role")));
+            account.getAccountRoles().add(accountRole);
+
+            account = accountRepository.save(account);
+        }
+
+        // Tạo JWT token
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                account.getUsername(),
+                account.getPassword() != null ? account.getPassword() : "", // Mật khẩu có thể null nếu là lần đầu login qua OAuth
+                account.getAccountRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getRole().getName()))
+                        .collect(Collectors.toList())
+        );
+        String jwtToken = jwtUtils.generateTokenFromUserDetails(userDetails);
+
+        // Tạo hoặc cập nhật refresh token (tương tự như hàm signIn)
+        String currentRefreshToken = account.getRefreshToken();
+        LocalDateTime refreshExpiresAt = account.getRefreshExpiresAt();
+        String refreshToken = (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt)))
+                ? jwtUtils.generateRefreshTokenFromUserDetails(userDetails)
+                : currentRefreshToken;
+
+        if (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt))) {
+            account.setRefreshToken(refreshToken);
+            account.setRefreshExpiresAt(LocalDateTime.now().plusDays(30));
+        }
+
+        account.setLatestLogin(LocalDateTime.now());
+        accountRepository.save(account);
+
+        // Thêm token vào cookie (tương tự như hàm signIn)
+        Cookie jwtCookie = new Cookie("token", jwtToken);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60 * 24 * 7);
+        jwtCookie.setAttribute("SameSite", "None");
+        httpServletResponse.addCookie(jwtCookie);
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        refreshTokenCookie.setAttribute("SameSite", "None");
+        httpServletResponse.addCookie(refreshTokenCookie);
+
+        // Tạo response
         return new AccountResponseDto(
-                newAccount.getId(),
-                newAccount.getFullName(),
-                newAccount.getUsername(),
-                newAccount.getEmail(),
-                newAccount.getAvatar(),
-                newAccount.getPhone(),
+                account.getId(),
+                account.getFullName(),
+                account.getUsername(),
+                account.getEmail(),
+                account.getAvatar(),
+                account.getPhone(),
                 account.getBlockReason(),
-                newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
+                account.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
         );
     }
 

@@ -15,6 +15,7 @@ import lombok.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.view.RedirectView;
 
 
 import java.util.List;
@@ -25,6 +26,9 @@ import java.util.Map;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class AccountController {
+
+    @Value("${frontend.home.url}") // Thêm biến cấu hình cho URL trang home frontend
+    private String frontendHomeUrl;
 
     // Github
     @Value("${spring.security.oauth2.client.provider.github.authorization-uri}")
@@ -146,13 +150,15 @@ public class AccountController {
     }
 
     @GetMapping("/public/login/github")
-    public String loginWithGithub() {
-        return authorizationUri +"?client_id=" + clientIdGithub + "&scope=" + scope;
+    public RedirectView loginWithGithub() {
+        String githubAuthUrl = authorizationUri + "?client_id=" + clientIdGithub + "&scope=" + scope;
+        return new RedirectView(githubAuthUrl);
     }
 
     @GetMapping("/public/login/oauth2/code/github")
-    public AccountResponseDto oauth2CallbackGithub(@RequestParam("code") String code) {
-        return accountService.handleGithubOAuth(code);
+    public RedirectView oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
+        accountService.handleGithubOAuth(code, httpServletResponse);
+        return new RedirectView(frontendHomeUrl);
     }
 
     @GetMapping("/public/login/google")
