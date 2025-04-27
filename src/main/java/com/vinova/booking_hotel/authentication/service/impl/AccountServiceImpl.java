@@ -658,16 +658,16 @@ public class AccountServiceImpl implements AccountService {
 
         // Thêm token vào cookie (tương tự như hàm signIn)
         Cookie jwtCookie = new Cookie("token", jwtToken);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
+        jwtCookie.setHttpOnly(false);
+        jwtCookie.setSecure(false);
         jwtCookie.setPath("/");
         jwtCookie.setMaxAge(60 * 60 * 24 * 7);
         jwtCookie.setAttribute("SameSite", "None");
         httpServletResponse.addCookie(jwtCookie);
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setHttpOnly(false);
+        refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
         refreshTokenCookie.setAttribute("SameSite", "None");
