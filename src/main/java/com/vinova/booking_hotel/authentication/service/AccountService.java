@@ -42,7 +42,5 @@ public interface AccountService {
     AccountResponseDto handleGoogleOAuth(String code) ;
 
     void blockInactiveAccounts();
-
-    Optional<Account> findAccountByUsername(String username);
     
 }

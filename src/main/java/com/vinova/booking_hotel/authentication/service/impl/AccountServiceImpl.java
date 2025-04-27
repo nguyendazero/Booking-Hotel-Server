@@ -742,11 +742,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Optional<Account> findAccountByUsername(String username) {
-        return accountRepository.findByUsername(username);
-    }
-
-    @Override
     @Scheduled(cron = "0 0 0 * * ?") // Chạy mỗi ngày vào lúc 0:00
 //    @Scheduled(cron = "*/30 * * * * ?") // Chạy mỗi 30 giây
     public void blockInactiveAccounts() {
