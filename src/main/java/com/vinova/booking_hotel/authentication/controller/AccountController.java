@@ -182,8 +182,14 @@ public class AccountController {
     }
 
     @GetMapping("/public/me")
-    public ResponseEntity<AccountResponseDto> getCurrentUser(@CookieValue(value = "token", required = false) String token) {
-        if (token == null || token.isEmpty()) {
+    public ResponseEntity<AccountResponseDto> getCurrentUser(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String token = authorizationHeader.substring(7); // Lấy token sau "Bearer "
+
+        if (token.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
