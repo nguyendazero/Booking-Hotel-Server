@@ -1,9 +1,13 @@
 package com.vinova.booking_hotel.authentication.controller;
 
+import com.vinova.booking_hotel.authentication.model.Account;
 import com.vinova.booking_hotel.authentication.service.AccountService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +22,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.view.RedirectView;
 
 
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -173,6 +179,42 @@ public class AccountController {
     @GetMapping("/public/login/oauth2/code/google")
     public AccountResponseDto oauth2CallbackGoogle(@RequestParam("code") String code) {
         return accountService.handleGoogleOAuth(code);
+    }
+
+    @GetMapping("/public/me")
+    public ResponseEntity<AccountResponseDto> getCurrentUser(@CookieValue(value = "token", required = false) String token) {
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            String username = jwtUtils.getUserNameFromJwtToken(token);
+            Account account = accountService.findAccountByUsername(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+
+            // Lấy danh sách vai trò của người dùng
+            List<String> roles = account.getAccountRoles().stream()
+                    .map(accountRole -> accountRole.getRole().getName())
+                    .collect(Collectors.toList());
+
+            // Tạo AccountResponseDto
+            AccountResponseDto responseDto = new AccountResponseDto(
+                    account.getId(),
+                    account.getFullName(),
+                    account.getUsername(),
+                    account.getEmail(),
+                    account.getAvatar(),
+                    account.getPhone(),
+                    account.getBlockReason(),
+                    roles
+            );
+
+            return ResponseEntity.ok(responseDto);
+
+        } catch (ExpiredJwtException | MalformedJwtException | IllegalArgumentException e) {
+            // Token không hợp lệ
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
     
 }

@@ -3,9 +3,11 @@ package com.vinova.booking_hotel.authentication.service;
 import com.vinova.booking_hotel.authentication.dto.request.*;
 import com.vinova.booking_hotel.authentication.dto.response.AccountResponseDto;
 import com.vinova.booking_hotel.authentication.dto.response.SignInResponseDto;
+import com.vinova.booking_hotel.authentication.model.Account;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AccountService {
 
@@ -40,5 +42,7 @@ public interface AccountService {
     AccountResponseDto handleGoogleOAuth(String code) ;
 
     void blockInactiveAccounts();
+
+    Optional<Account> findAccountByUsername(String username);
     
 }
