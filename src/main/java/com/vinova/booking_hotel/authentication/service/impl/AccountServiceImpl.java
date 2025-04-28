@@ -577,7 +577,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse) {
+    public SignInResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse) {
         // Bước 1: Đổi mã xác thực lấy access token (giữ nguyên)
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -656,7 +656,7 @@ public class AccountServiceImpl implements AccountService {
         account.setLatestLogin(LocalDateTime.now());
         accountRepository.save(account);
 
-        // Thêm token vào cookie (tương tự như hàm signIn)
+        // Thêm token vào cookie (giữ nguyên)
         Cookie jwtCookie = new Cookie("token", jwtToken);
         jwtCookie.setHttpOnly(true);
         jwtCookie.setSecure(true);
@@ -673,16 +673,10 @@ public class AccountServiceImpl implements AccountService {
         refreshTokenCookie.setAttribute("SameSite", "None");
         httpServletResponse.addCookie(refreshTokenCookie);
 
-        // Tạo response
-        return new AccountResponseDto(
-                account.getId(),
-                account.getFullName(),
-                account.getUsername(),
-                account.getEmail(),
-                account.getAvatar(),
-                account.getPhone(),
-                account.getBlockReason(),
-                account.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
+        // Tạo response với token và refreshToken bằng SignInResponseDto
+        return new SignInResponseDto(
+                jwtToken,
+                refreshToken
         );
     }
 

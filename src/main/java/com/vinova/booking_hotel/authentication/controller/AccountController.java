@@ -156,9 +156,8 @@ public class AccountController {
     }
 
     @GetMapping("/public/login/oauth2/code/github")
-    public RedirectView oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
-        accountService.handleGithubOAuth(code, httpServletResponse);
-        return new RedirectView(frontendHomeUrl);
+    public ResponseEntity<SignInResponseDto> oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
+        return ResponseEntity.ok(accountService.handleGithubOAuth(code, httpServletResponse));
     }
 
     @GetMapping("/public/login/google")

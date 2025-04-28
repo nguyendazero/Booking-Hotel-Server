@@ -37,7 +37,7 @@ public interface AccountService {
 
     void deleteAccountById(Long accountId);
 
-    AccountResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse);
+    SignInResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse);
 
     AccountResponseDto handleGoogleOAuth(String code) ;
 
