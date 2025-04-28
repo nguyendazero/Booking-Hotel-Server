@@ -1,6 +1,7 @@
 package com.vinova.booking_hotel.authentication.controller;
 
 import com.vinova.booking_hotel.authentication.service.AccountService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -157,7 +158,8 @@ public class AccountController {
 
     @GetMapping("/public/login/oauth2/code/github")
     public ResponseEntity<SignInResponseDto> oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
-        return ResponseEntity.ok(accountService.handleGithubOAuth(code, httpServletResponse));
+        SignInResponseDto signInResponse = accountService.handleGithubOAuth(code, httpServletResponse);
+        return ResponseEntity.ok(signInResponse);
     }
 
     @GetMapping("/public/login/google")
