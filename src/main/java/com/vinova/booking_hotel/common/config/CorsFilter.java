@@ -12,7 +12,7 @@ import java.util.Set;
 @Component
 public class CorsFilter implements Filter {
 
-    private final Set<String> allowedOrigins = new HashSet<>(); // Để trống để kiểm tra sau
+    private final Set<String> allowedOrigins = Set.of("https://nguyendazero.github.io");
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
@@ -20,10 +20,12 @@ public class CorsFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
 
         String origin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Origin", Objects.requireNonNullElse(origin, "*")); // Cho phép mọi origin gửi đến
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
+        if (allowedOrigins.contains(origin)) {
+            response.setHeader("Access-Control-Allow-Origin", origin); // Chỉ cho phép domain hợp lệ
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept");
+        }
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
