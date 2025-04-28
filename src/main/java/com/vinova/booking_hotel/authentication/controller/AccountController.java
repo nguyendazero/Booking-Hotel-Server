@@ -163,17 +163,18 @@ public class AccountController {
     }
 
     @GetMapping("/public/login/google")
-    public String loginWithGoogle() {
-        String redirectUrl = String.format(
+    public RedirectView loginWithGoogle() {
+        String googleAuthUrl = String.format(
                 "https://accounts.google.com/o/oauth2/auth?client_id=%s&scope=profile email&redirect_uri=%s&response_type=code",
                 clientIdGoogle, redirectUri
         );
-        return redirectUrl;
+        return new RedirectView(googleAuthUrl);
     }
 
-    @GetMapping("/public/login/oauth2/code/google")
-    public AccountResponseDto oauth2CallbackGoogle(@RequestParam("code") String code) {
-        return accountService.handleGoogleOAuth(code);
+    @PostMapping("/public/login/oauth2/code/google")
+    public ResponseEntity<SignInResponseDto> oauth2CallbackGoogle(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
+        SignInResponseDto response = accountService.handleGoogleOAuth(code, httpServletResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
     
 }

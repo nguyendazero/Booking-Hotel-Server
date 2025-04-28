@@ -681,7 +681,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountResponseDto handleGoogleOAuth(String code) {
+    public SignInResponseDto handleGoogleOAuth(String code, HttpServletResponse httpServletResponse) {
         // Bước 1: Đổi mã xác thực lấy access token từ Google
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -693,6 +693,7 @@ public class AccountServiceImpl implements AccountService {
         body.add("redirect_uri", redirectUri);
         body.add("grant_type", "authorization_code");
 
+        // Gửi yêu cầu lấy token
         ResponseEntity<Map<String, Object>> tokenResponse = restTemplate.exchange(
                 tokenUriGoogle, HttpMethod.POST, new HttpEntity<>(body, headers),
                 new ParameterizedTypeReference<>() {}
@@ -707,34 +708,86 @@ public class AccountServiceImpl implements AccountService {
                 new ParameterizedTypeReference<>() {}
         );
 
-        // Tạo tài khoản mới
-        Account account = new Account();
-        account.setEmail(Objects.requireNonNull(userResponse.getBody()).get("email").toString());
-        account.setFullName(userResponse.getBody().get("name").toString());
-        account.setAvatar(userResponse.getBody().get("picture").toString());
-        account.setUsername(userResponse.getBody().get("email").toString().split("@")[0]);
+        // Lấy thông tin người dùng
+        String googleEmail = Objects.requireNonNull(userResponse.getBody()).get("email").toString();
+        String googleName = userResponse.getBody().get("name").toString();
+        String googleAvatar = userResponse.getBody().get("picture").toString();
+        String googleUsername = googleEmail.split("@")[0];  // Sử dụng email để tạo username
 
-        AccountRole accountRole = new AccountRole();
-        accountRole.setAccount(account);
-        accountRole.setRole(roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new ResourceNotFoundException("role")));
-        account.getAccountRoles().add(accountRole);
+        Account account;
 
-        // Lưu tài khoản vào cơ sở dữ liệu
-        Account newAccount = accountRepository.save(account);
+        // Kiểm tra xem tài khoản đã tồn tại dựa trên email
+        Optional<Account> existingAccount = accountRepository.findByEmail(googleEmail);
 
-        return new AccountResponseDto(
-                newAccount.getId(),
-                newAccount.getFullName(),
-                newAccount.getUsername(),
-                newAccount.getEmail(),
-                newAccount.getAvatar(),
-                newAccount.getPhone(),
-                account.getBlockReason(),
-                newAccount.getAccountRoles().stream().map(role -> role.getRole().getName()).toList()
+        if (existingAccount.isPresent()) {
+            // Tài khoản đã tồn tại
+            account = existingAccount.get();
+        } else {
+            // Tài khoản chưa tồn tại, tạo mới
+            account = new Account();
+            account.setEmail(googleEmail);
+            account.setFullName(googleName);
+            account.setAvatar(googleAvatar);
+            account.setUsername(googleUsername); // Có thể cần xử lý trùng username
+
+            AccountRole accountRole = new AccountRole();
+            accountRole.setAccount(account);
+            accountRole.setRole(roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new ResourceNotFoundException("role")));
+            account.getAccountRoles().add(accountRole);
+
+            account = accountRepository.save(account);
+        }
+
+        // Tạo JWT token
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                account.getUsername(),
+                account.getPassword() != null ? account.getPassword() : "", // Mật khẩu có thể null nếu là lần đầu login qua OAuth
+                account.getAccountRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getRole().getName()))
+                        .collect(Collectors.toList())
+        );
+        String jwtToken = jwtUtils.generateTokenFromUserDetails(userDetails);
+
+        // Tạo hoặc cập nhật refresh token
+        String currentRefreshToken = account.getRefreshToken();
+        LocalDateTime refreshExpiresAt = account.getRefreshExpiresAt();
+        String refreshToken = (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt)))
+                ? jwtUtils.generateRefreshTokenFromUserDetails(userDetails)
+                : currentRefreshToken;
+
+        if (currentRefreshToken == null || (refreshExpiresAt != null && LocalDateTime.now().isAfter(refreshExpiresAt))) {
+            account.setRefreshToken(refreshToken);
+            account.setRefreshExpiresAt(LocalDateTime.now().plusDays(30));
+        }
+
+        account.setLatestLogin(LocalDateTime.now());
+        accountRepository.save(account);
+
+        // Thêm token vào cookie
+        Cookie jwtCookie = new Cookie("token", jwtToken);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60 * 24 * 7);
+        jwtCookie.setAttribute("SameSite", "None");
+        httpServletResponse.addCookie(jwtCookie);
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60 * 60 * 24 * 7);
+        refreshTokenCookie.setAttribute("SameSite", "None");
+        httpServletResponse.addCookie(refreshTokenCookie);
+
+        // Tạo response với token và refreshToken
+        return new SignInResponseDto(
+                jwtToken,
+                refreshToken
         );
     }
-
+    
     @Override
     @Scheduled(cron = "0 0 0 * * ?") // Chạy mỗi ngày vào lúc 0:00
 //    @Scheduled(cron = "*/30 * * * * ?") // Chạy mỗi 30 giây

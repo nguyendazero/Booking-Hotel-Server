@@ -39,7 +39,7 @@ public interface AccountService {
 
     SignInResponseDto handleGithubOAuth(String code, HttpServletResponse httpServletResponse);
 
-    AccountResponseDto handleGoogleOAuth(String code) ;
+    SignInResponseDto handleGoogleOAuth(String code, HttpServletResponse httpServletResponse);
 
     void blockInactiveAccounts();
     
