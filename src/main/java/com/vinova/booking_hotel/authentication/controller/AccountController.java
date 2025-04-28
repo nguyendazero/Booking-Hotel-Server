@@ -156,10 +156,10 @@ public class AccountController {
         return new RedirectView(githubAuthUrl);
     }
 
-    @GetMapping("/public/login/oauth2/code/github")
+    @PostMapping("/public/login/oauth2/code/github")
     public ResponseEntity<SignInResponseDto> oauth2CallbackGithub(@RequestParam("code") String code, HttpServletResponse httpServletResponse) {
-        SignInResponseDto signInResponse = accountService.handleGithubOAuth(code, httpServletResponse);
-        return ResponseEntity.ok(signInResponse);
+        SignInResponseDto response = accountService.handleGithubOAuth(code, httpServletResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/public/login/google")
