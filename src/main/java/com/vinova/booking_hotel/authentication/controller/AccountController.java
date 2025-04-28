@@ -44,8 +44,8 @@ public class AccountController {
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientIdGoogle;
 
-//    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-//    private String redirectUri;
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String redirectUri;
     
 
     private final AccountService accountService;
@@ -163,7 +163,6 @@ public class AccountController {
 
     @GetMapping("/public/login/google")
     public RedirectView loginWithGoogle() {
-        String redirectUri = "https://nguyendazero.github.io/Booking-Hotel-React/google-redirect"; // Gán trực tiếp Redirect URI
         String googleAuthUrl = String.format(
                 "https://accounts.google.com/o/oauth2/auth?client_id=%s&scope=profile email&redirect_uri=%s&response_type=code",
                 clientIdGoogle, redirectUri
