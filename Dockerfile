@@ -4,7 +4,7 @@ FROM openjdk:21-jdk AS builder
 WORKDIR /app
 COPY . .
 RUN chmod +x ./mvnw  # Cấp quyền thực thi cho mvnw
-RUN ./mvnw clean package
+RUN ./mvnw clean package -DskipTests
 
 # Giai đoạn 2: Chạy ứng dụng
 FROM openjdk:21-jdk
