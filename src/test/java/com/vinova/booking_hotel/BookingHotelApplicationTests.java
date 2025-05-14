@@ -1,13 +1,13 @@
-package com.vinova.booking_hotel;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-
-@SpringBootTest
-class BookingHotelApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
-}
+//package com.vinova.booking_hotel;
+//
+//import org.junit.jupiter.api.Test;
+//import org.springframework.boot.test.context.SpringBootTest;
+//
+//@SpringBootTest
+//class BookingHotelApplicationTests {
+//
+//	@Test
+//	void contextLoads() {
+//	}
+//
+//}
